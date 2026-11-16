@@ -4,13 +4,13 @@
    - pictures and fonts: cache first
    - anything else (Supabase sync, other sites): never touched
    Bump VER on every release. */
-const VER = 'jlb2';
+const VER = 'jlb3';
 const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v1';
 const PRE = ['./', 'index.html', 'manifest.webmanifest',
-  'css/app.css?v=jlb2', 'css/jlb.css?v=jlb2',
-  'js/core.js?v=jlb2', 'js/sync.js?v=jlb2', 'js/figures.js?v=jlb2', 'js/data.js?v=jlb2', 'js/engine.js?v=jlb2',
-  'js/calendar.js?v=jlb2', 'js/dalil_data.js?v=jlb2', 'js/journal.js?v=jlb2', 'js/ui.js?v=jlb2', 'js/player.js?v=jlb2',
-  'js/handwrap.js?v=jlb2', 'js/workouts.js?v=jlb2', 'js/jlb_core.js?v=jlb2', 'js/boot.js?v=jlb2',
+  'css/app.css?v=jlb3', 'css/jlb.css?v=jlb3',
+  'js/core.js?v=jlb3', 'js/sync.js?v=jlb3', 'js/figures.js?v=jlb3', 'js/data.js?v=jlb3', 'js/engine.js?v=jlb3',
+  'js/calendar.js?v=jlb3', 'js/dalil_data.js?v=jlb3', 'js/journal.js?v=jlb3', 'js/ui.js?v=jlb3', 'js/player.js?v=jlb3',
+  'js/handwrap.js?v=jlb3', 'js/workouts.js?v=jlb3', 'js/jlb_core.js?v=jlb3', 'js/boot.js?v=jlb3',
   'img/jlb/brand/emblem-96.webp'];
 
 self.addEventListener('install', e => {

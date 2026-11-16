@@ -64,8 +64,8 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - To change a reminder, edit `js/dalil_data.js`, or send the change and it will be regenerated from the sources.
 
 ## JLB release notes
-- **Version number.** Every script and stylesheet link ends in `?v=jlb2`, and `sw.js` has `VER = 'jlb2'`.
-  When you change any js or css file, change it to the next number (`jlb3`) everywhere (index.html, sw.js `VER` and `PRE`, and `JLB_VER` in `js/jlb_core.js`).
+- **Version number.** Every script and stylesheet link ends in `?v=jlb3`, and `sw.js` has `VER = 'jlb3'`.
+  When you change any js or css file, change it to the next number (`jlb4`) everywhere (index.html, sw.js `VER` and `PRE`, and `JLB_VER` in `js/jlb_core.js`).
   Otherwise phones keep the old file for up to a week.
 - **New keys** (all per person, `corner3:p:<id>:jlb:*`): `day` (amaliyah, habits, missions, berhalangan, per date),
   `habits`, `set` (rawatib, city), `learn`, `roda`, `peti`, `jalan`, `40`, `jimon`, `ortu`, `chat`, `chatn`, `mjh`. `day`, `learn`, `peti`, `roda` and `jalan` merge per entry when syncing.
@@ -76,3 +76,5 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
   everyayah.com (`QARI` in `js/jlb_core.js`). To host them yourself, run `unduh_audio.ps1` and upload `img/jlb/audio/`
   (`SSSAAA.mp3` + `qari.json`); the app then uses those. The device voice never reads the Quran.
 - **Doa setelah wudhu** comes from Jami' at-Tirmidzi no. 55 (hadith-api dataset), key `_hadith.wudhu` in `js/jlb_ayat.json`.
+- **Tampilan Anak/Dewasa.** Stored as `mode` in `jlb:set`. Profiles 13+ switch it themselves in Saya; under 13 only a parent can, in Ruang Orang Tua (PIN).
+- **Peti Jumat approvals** also appear at the top of a parent's Taman when any child has a request waiting (that child's parents' PIN).
