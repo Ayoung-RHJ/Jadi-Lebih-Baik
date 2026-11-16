@@ -64,8 +64,8 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - To change a reminder, edit `js/dalil_data.js`, or send the change and it will be regenerated from the sources.
 
 ## JLB release notes
-- **Version number.** Every script and stylesheet link ends in `?v=jlb4`, and `sw.js` has `VER = 'jlb4'`.
-  When you change any js or css file, change it to the next number (`jlb5`) everywhere (index.html, sw.js `VER` and `PRE`, and `JLB_VER` in `js/jlb_core.js`).
+- **Version number.** Every script and stylesheet link ends in `?v=jlb6`, and `sw.js` has `VER = 'jlb6'`.
+  When you change any js or css file, change it to the next number (`jlb7`) everywhere (index.html, sw.js `VER` and `PRE`, and `JLB_VER` in `js/jlb_core.js`).
   Otherwise phones keep the old file for up to a week.
 - **New keys** (all per person, `corner3:p:<id>:jlb:*`): `day` (amaliyah, habits, missions, berhalangan, per date),
   `habits`, `set` (rawatib, city), `learn`, `roda`, `peti`, `jalan`, `40`, `jimon`, `ortu`, `chat`, `chatn`, `mjh`. `day`, `learn`, `peti`, `roda` and `jalan` merge per entry when syncing.
@@ -78,3 +78,6 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - **Doa setelah wudhu** comes from Jami' at-Tirmidzi no. 55 (hadith-api dataset), key `_hadith.wudhu` in `js/jlb_ayat.json`.
 - **Tampilan Anak/Dewasa.** Stored as `mode` in `jlb:set`. Profiles 13+ switch it themselves in Saya; under 13 only a parent can, in Ruang Orang Tua (PIN).
 - **Peti Jumat approvals** also appear at the top of a parent's Taman when any child has a request waiting (that child's parents' PIN).
+- **Amal order and slots.** Every amal in `HABITS` (`js/jlb_adult.js`) has a time slot `t` (malam, subuh, pagi, siang, sore, maghrib, isya). Lists follow the day; Taman starts at the current slot.
+- **New icons.** An amal can name an icon that is not uploaded yet (`ic`) with a fallback (`fb`). Upload the new picture to `img/jlb/ikon/` and it appears without a code change.
+- **Puasa sunnah** comes from `dayInfo()` in `js/calendar.js` (Senin, Kamis, Ayyamul Bidh, Arafah, Tasu'a, Asyura, 6 Syawal). A tick is saved as amal `puasa` and also in the Jurnal Sehat Kita fasting log. Kids get it only as the "Belajar puasa" mission, switched on by a parent.
