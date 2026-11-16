@@ -88,6 +88,7 @@ function renderTaman() {
     <span style="font-size:.85rem;opacity:.9">${dayName(now.getDay())}, ${niceDate(now)} · ${hijriTxt(hijri(now))}</span>
     <h1>Assalamu’alaikum, ${esc(PROF.name)}</h1>
     <span style="opacity:.9">${P.next ? 'Berikutnya ' + PRN[P.next] + ' ' + hm(P.t[P.next]) : 'Waktu Isya, istirahat yang cukup ya'} · ${esc(setting('city', 'Jakarta'))}</span></section>
+  ${petiInbox()}
   <section class="jcard" aria-label="Amaliyah sholat"><div class="jrow sp"><h2>Amaliyah sholat</h2>${isWoman() ? `<button class="jchip" data-jh aria-pressed="${!!d.h}">Berhalangan</button>` : ''}</div>
     <div class="jam" role="group">${strip}</div><div class="jrow sp"><b>${PRN[op]}</b><span class="jmut">${hm(P.t[op])}</span></div>${sheet}</section>
   <section class="jcard" aria-label="Taman"><div class="jrow sp"><h2>Tamanku</h2><span class="jmut">7 hari terakhir</span></div>
@@ -158,6 +159,7 @@ function renderSaya() {
   <section class="jcard"><h2>Pengaturan amaliyah</h2>
     <label class="jrow sp"><span>Tampilkan sholat rawatib</span><input type="checkbox" data-jset="rawatib" ${setting('rawatib', true) ? 'checked' : ''} style="width:24px;height:24px"></label>
     <label class="jrow sp"><span>Kota untuk waktu sholat</span><select data-jset="city" class="inp" style="max-width:170px">${Object.keys(CITIES).sort().map(c => `<option ${c === setting('city', 'Jakarta') ? 'selected' : ''}>${c}</option>`).join('')}</select></label></section>
+  ${ageKid() ? '<a href="#ortu" class="jmut" style="text-align:center;padding:12px">Untuk Ayah dan Ibu (PIN)</a>' : modeCard()}
   <a class="jcard" href="#me" style="text-decoration:none;color:inherit"><h2>Profil, latihan, sinkron keluarga, PIN</h2><span class="jmut">Pengaturan Jurnal Sehat Kita</span></a></div>`;
 }
 
@@ -288,3 +290,35 @@ document.addEventListener('change', e => {
   const t = e.target.closest('[data-jset]'); if (!t) return;
   setSetting(t.dataset.jset, t.type === 'checkbox' ? t.checked : t.value); jtoast('Tersimpan');
 });
+
+/* ---------- Peti Jumat requests from the children, approved from a parent's own profile ---------- */
+const PUNL = new Set();
+function petiInbox() {
+  const kids = (PROFILES || []).filter(p => p.id !== CUR && kidMode(p.id));
+  const rows = [];
+  kids.forEach(p => Object.entries(pget(p.id, 'jlb:peti', {}) || {}).forEach(([k, r]) => { if (r && r.st === 'req') rows.push({ p, k, r }); }));
+  if (!rows.length) return '';
+  const locked = rows.some(x => !PUNL.has(x.p.id));
+  return `<section class="jcard" style="border:2px solid var(--jy)"><div class="jrow"><img src="${jimg('anak/chest.webp')}" alt="" width="48" height="48"><h2>Permintaan Peti Jumat</h2></div>
+    ${locked ? '<label for="pqPin" class="jmut">Masukkan PIN orang tua, lalu pilih Setujui atau Tolak</label><input id="pqPin" class="inp" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><p id="pqErr" class="jmut" role="alert"></p>' : ''}
+    ${rows.map(x => { const S = petiState(x.p.id); return `<div class="jrow sp" style="flex-wrap:wrap;gap:8px"><span><b>${esc(x.p.name)}</b> minta ${x.r.min} menit main<br><span class="jmut">Sisa pekan ini ${S.left} dari ${S.cap} menit · ${niceDate(new Date(x.r.at))}</span></span>
+      <span class="jrow">${jbtn('Setujui', `data-preq="${x.p.id}|${x.k}|ok"`, 'green')}${jbtn('Tolak', `data-preq="${x.p.id}|${x.k}|no"`, 'ghost')}</span></div>`; }).join('')}</section>`;
+}
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-preq]'); if (!b) return;
+  const [kid, k, st] = b.dataset.preq.split('|'), O = pget(kid, 'jlb:ortu', {}) || {};
+  if (!PUNL.has(kid)) {
+    const pin = (($('#pqPin') || {}).value || '').trim(), err = $('#pqErr');
+    if (!/^\d{4}$/.test(pin)) { if (err) err.textContent = 'Masukkan PIN orang tua (4 angka).'; return; }
+    const h = await pinHash('ortu:' + kid, pin);
+    if (!O.pin) pset(kid, 'jlb:ortu', Object.assign({}, O, { pin:h }));
+    else if (h !== O.pin) { if (err) err.textContent = 'PIN salah.'; return; }
+    PUNL.add(kid);
+  }
+  const R = Object.assign({}, pget(kid, 'jlb:peti', {}) || {});
+  if (R[k]) { R[k] = Object.assign({}, R[k], { st, at:Date.now() }); pset(kid, 'jlb:peti', R); }
+  jtoast(st === 'ok' ? 'Disetujui. Selamat bermain!' : 'Permintaan ditolak.');
+  if (typeof syncSoon === 'function') syncSoon(1500);
+  renderTaman();
+});
+addEventListener('hashchange', () => PUNL.clear());

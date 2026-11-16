@@ -3,7 +3,7 @@
    XP and levels, Jimon state, lazy modules, tabs and routes.
    All data lives in the same corner3:* storage and syncs like the rest.
    ========================================================= */
-const JLB_VER = 'jlb2';
+const JLB_VER = 'jlb3';
 const JIMG = 'img/jlb/';
 const PR = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
 const PRN = { subuh:'Subuh', dzuhur:'Dzuhur', ashar:'Ashar', maghrib:'Maghrib', isya:'Isya' };
@@ -18,7 +18,15 @@ const jAdd = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); retu
 const kOf = s => new Date(s + 'T00:00:00');
 const jimg = p => JIMG + p;
 function arabicFont() { const l = document.getElementById('amiriFont'); if (l && l.media !== 'all') l.media = 'all'; }
-const isKidP = p => ageGroup(((p || PROF) || {}).age) === 'kid';
+/* Kids view: by age unless a mode was chosen (13+ choose it themselves; under 13 only a parent, in Ruang Orang Tua) */
+const ageKid = id => ageGroup((pget(id || CUR, 'profile', {}) || {}).age) === 'kid';
+const kidMode = id => { const m = (pget(id || CUR, 'jlb:set', {}) || {}).mode; return m ? m === 'anak' : ageKid(id); };
+const isKidP = () => !!CUR && kidMode(CUR);
+function setMode(id, m) { const s = Object.assign({}, pget(id, 'jlb:set', {}) || {}); s.mode = m; pset(id, 'jlb:set', s);
+  if (id === CUR) { document.body.classList.toggle('jkid', m === 'anak'); location.hash = '#taman'; paintChrome(); route(); } }
+const modeCard = () => `<section class="jcard"><h2>Tampilan</h2><div class="jtick">${[['dewasa', 'Dewasa'], ['anak', 'Anak']].map(([v, t]) => `<button class="jchip" data-jmode="${v}" aria-pressed="${(v === 'anak') === isKidP()}">${t}</button>`).join('')}</div><span class="jmut">Anak: Jimon, Misi, Belajar Seru dan Peti Jumat. Dewasa: Taman, Amal, Latihan dan Rekap. Semua catatan tetap tersimpan.</span></section>`;
+document.addEventListener('click', e => { const b = e.target.closest('[data-jmode]'); if (!b || ageKid()) return; setMode(CUR, b.dataset.jmode); });
+
 
 /* ---- per-person storage (works for the current person or anyone in the family) ---- */
 const pget = (id, k, d) => store.get('p:' + id + ':' + k, d);

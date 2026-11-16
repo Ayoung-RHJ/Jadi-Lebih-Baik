@@ -97,7 +97,7 @@ function renderKamar() {
   <section class="jcard" style="background:var(--jkidcard)"><div class="jrow sp"><h2>Rak lencanaku</h2><span class="jmut">${got.size} dari ${BADGES_K.length}</span></div>
     <div class="jgrid4">${BADGES_K.map(([k, n, m, ic]) => { const g = got.has(k); return `<div style="text-align:center;opacity:${g ? 1 : .4};filter:${g ? 'none' : 'grayscale(1)'}"><span style="position:relative;display:inline-block;width:56px;height:70px"><img src="${jimg('anak/medali_' + m + '.webp')}" alt="" width="56" height="70" loading="lazy"><img src="${jimg('ikon/' + ic + '.webp')}" alt="" style="position:absolute;left:13px;top:11px;width:30px;height:30px;border-radius:50%" loading="lazy"></span><small style="display:block;font-size:.7rem;line-height:1.2">${n}</small></div>`; }).join('')}</div></section>
   <a class="jcard" href="#perjalanan" style="text-decoration:none;color:#3D2C00;background:var(--jy)"><b>Perjalananku ke langit</b><span>Sekarang: ${STOPS_KID_NAME()}</span></a>
-  <a href="#ortu" class="jmut" style="text-align:center;padding:12px">Untuk Ayah dan Ibu (PIN)</a>
+  ${ageKid() ? '<a href="#ortu" class="jmut" style="text-align:center;padding:12px">Untuk Ayah dan Ibu (PIN)</a>' : modeCard()}
   </div>${KPOP ? `<div class="jsheet" data-kpop><div role="dialog" aria-modal="true" style="align-items:center;text-align:center"><span class="jmut" style="font-weight:800;letter-spacing:.06em">NAIK LEVEL!</span><h1>Level ${L.l}</h1>
     <img src="${jimg('jimon/hiasan/a_' + KPOP + '.webp')}" alt="" height="120" style="height:120px;width:auto" class="jwig"><p>Hiasan baru terbuka: <b>${JACC[KPOP].n}</b></p>${jbtn('Pakaikan ke Jimon', 'data-kwear="' + KPOP + '"', 'block')}${jbtn('Nanti saja', 'data-kpop', 'ghost block')}</div></div>` : ''}`;
 }
@@ -135,6 +135,7 @@ function renderOrtu() {
   el.innerHTML = `<div class="jw"><div class="jrow sp" style="padding-top:8px">${back('#saya')}<h1>Untuk Ayah dan Ibu</h1>${jbtn('Kunci', 'data-olock', 'ghost')}</div>
     <section class="jcard"><h2>Permintaan waktu main</h2>${pend.length ? pend.map(([k, r]) => `<div class="jrow sp"><span>${r.min} menit · ${niceDate(new Date(r.at))}</span><span class="jrow">${jbtn('Setujui', 'data-oreq="' + k + ':ok"', 'green')}${jbtn('Tolak', 'data-oreq="' + k + ':no"', 'ghost')}</span></div>`).join('') : '<p class="jmut">Tidak ada permintaan.</p>'}
       <span class="jmut">Sisa pekan ini ${S.left} dari ${S.cap} menit. Saldo ${S.bal} XP.</span></section>
+    <section class="jcard"><h2>Tampilan</h2><div class="jtick">${[['anak', 'Anak'], ['dewasa', 'Dewasa']].map(([v, t]) => `<button class="jchip" data-omode="${v}" aria-pressed="${(v === 'anak') === isKidP()}">${t}</button>`).join('')}</div><span class="jmut">Hanya Ayah atau Ibu yang bisa mengganti tampilan anak di bawah 13 tahun.</span></section>
     <section class="jcard"><h2>Batas waktu main per pekan</h2><div class="jtick">${[120, 180, 240, 300, 360].map(m => `<button class="jchip" data-ocap="${m}" aria-pressed="${O.cap === m}">${m / 60} jam</button>`).join('')}</div></section>
     <section class="jcard"><h2>Misi harian</h2>${Object.keys(MISSIONS).map(m => `<label class="jrow sp"><span>${MISSIONS[m].n}</span><input type="checkbox" data-omis="${m}" ${O.missions.includes(m) ? 'checked' : ''} style="width:24px;height:24px"></label>`).join('')}</section>
     <section class="jcard"><h2>Tandai pencapaian</h2>${[['fatihah', 'Sudah hafal Al-Fatihah'], ['puasa', 'Puasa pertama'], ['ramadan', 'Ramadan penuh (sesuai kemampuan)']].map(([k, t]) => `<label class="jrow sp"><span>${t}</span><input type="checkbox" data-omark="${k}" ${O.marks[k] ? 'checked' : ''} style="width:24px;height:24px"></label>`).join('')}</section>
@@ -146,7 +147,7 @@ const setOrtu = patch => { const O = Object.assign({}, pget(CUR, 'jlb:ortu', {})
 
 /* ---------------- events ---------------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-klan],[data-kmis],[data-kpet],[data-kbath],[data-kwear],[data-kpop],[data-kpeti],[data-oopen],[data-olock],[data-oreq],[data-ocap]');
+  const t = e.target.closest('[data-klan],[data-kmis],[data-kpet],[data-kbath],[data-kwear],[data-kpop],[data-kpeti],[data-oopen],[data-olock],[data-oreq],[data-ocap],[data-omode]');
   if (!t || t.disabled) return;
   const ds = t.dataset, tk = todayK();
   if (ds.klan) { dayPut(tk, d => { d.s = d.s || {}; const s = Object.assign({}, d.s[ds.klan] || {}); s.f = s.f ? 0 : 1; d.s[ds.klan] = s; });
@@ -163,6 +164,7 @@ document.addEventListener('click', async e => {
   if (ds.olock !== undefined) { OUNLOCK = false; return renderOrtu(); }
   if (ds.oreq) { const [k, st] = ds.oreq.split(':'), R = jget('peti', {}); if (R[k]) { R[k] = Object.assign({}, R[k], { st, at:Date.now() }); jset('peti', R); } return renderOrtu(); }
   if (ds.ocap) { setOrtu({ cap:Number(ds.ocap) }); return renderOrtu(); }
+  if (ds.omode && OUNLOCK) { OUNLOCK = false; return setMode(CUR, ds.omode); }
 });
 document.addEventListener('change', e => {
   const t = e.target; if (!OUNLOCK) return;
