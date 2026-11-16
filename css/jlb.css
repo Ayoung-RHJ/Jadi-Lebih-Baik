@@ -39,7 +39,8 @@
 .jback{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.85);display:inline-flex;align-items:center;justify-content:center;color:#0F1D3D;flex-shrink:0}
 
 .jhero{position:relative;margin:0 -16px;min-height:260px;border-radius:0 0 32px 32px;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:16px}
-.jhero>img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.jhero>img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 82%;z-index:0}
+.jhero>img.bg[src*="sky_isya"]{object-position:50% 74%}
 .jhero>*{position:relative;z-index:1}
 .jhero .shade{position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(180deg,rgba(15,29,61,0),rgba(15,29,61,.7));z-index:0}
 .jhero .jtop{position:absolute;top:10px;left:12px;right:12px;display:flex;align-items:center;gap:8px;z-index:2}
@@ -207,3 +208,5 @@ body.jaudio .jlisten{display:inline-flex;align-self:flex-start;min-height:44px}
 body.jaudio .jqari{display:block}
 .jqari::before{content:var(--qari)}
 .jlisten[aria-pressed="true"]{border-color:var(--jg);color:var(--jg)}
+.jhero{text-shadow:0 1px 3px rgba(15,29,61,.55)}
+.jhero::before{content:"";position:absolute;inset:0 0 auto 0;height:45%;background:linear-gradient(180deg,rgba(15,29,61,.45),rgba(15,29,61,0));z-index:1;pointer-events:none}
