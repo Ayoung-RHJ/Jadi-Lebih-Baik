@@ -8,9 +8,10 @@ function paintChrome() {
   $('#whoBtn').innerHTML = me ? avatarFor(me) : I('me');
   $('#whoBtn').setAttribute('aria-label', tt('Switch person', 'Ganti orang'));
   $('#themeBtn').setAttribute('aria-label', tt('Light or dark mode', 'Mode terang atau gelap'));
-  $('#tabs').innerHTML = [['home', tt('Home','Beranda')],['plan', tt('Plan','Program')],['workouts', tt('Workouts','Latihan')],['progress', tt('Journal','Jurnal')],['me', tt('Me','Saya')]]
-    .map(([k, t]) => `<a href="#${k}" data-tab="${k}">${I(k === 'progress' ? 'book' : k)}<span>${t}</span></a>`).join('');
-  let v = location.hash.slice(1) || 'home'; if (typeof ALIAS !== 'undefined' && ALIAS[v]) v = ALIAS[v];
+  $('#tabs').innerHTML = (typeof jlbTabs === 'function' && PROF ? jlbTabs().map(([k, t, ic]) => [k, t, ic]) : [['home', tt('Home','Beranda'), 'home'],['plan', tt('Plan','Program'), 'plan'],['workouts', tt('Workouts','Latihan'), 'workouts'],['progress', tt('Journal','Jurnal'), 'book'],['me', tt('Me','Saya'), 'me']])
+    .map(([k, t, ic]) => `<a href="#${k}" data-tab="${k}">${I(ic)}<span>${t}</span></a>`).join('');
+  let v = location.hash.slice(1).split('/')[0] || 'taman'; if (typeof ALIAS !== 'undefined' && ALIAS[v]) v = ALIAS[v];
+  if (typeof JTAB_OF !== 'undefined' && JTAB_OF[v]) v = JTAB_OF[v];
   document.querySelectorAll('.tabs a').forEach(a => a.dataset.tab === v ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
   document.body.classList.toggle('nomotion', !MOTION);
 }
@@ -37,7 +38,7 @@ function closePicker() { $('#picker').hidden = true; document.body.classList.rem
 function renderPicker() {
   if (PKPIN) { $('#pkIn').innerHTML = pinPromptHTML(); setTimeout(() => { const i = $('#pkPin'); if (i && document.activeElement !== i) i.focus(); }, 30); return; }
   $('#pkIn').innerHTML = `<div class="sheet-top"><div class="lang" role="group"><button data-lang="en" aria-pressed="${LANG === 'en'}">EN</button><button data-lang="id" aria-pressed="${LANG === 'id'}">ID</button></div></div>
-    <img class="hero-logo" src="${LOGO}" alt="Jurnal Sehat Kita"><h1 class="h1">${tt('Who’s training today?','Siapa yang latihan hari ini?')}</h1>
+    <img class="hero-logo" src="img/jlb/brand/emblem.webp" alt="JLB" width="96" height="95"><h1 class="h1">${tt('Who’s here today?','Siapa yang hadir hari ini?')}</h1>
     <p class="lede">${tt('Everyone gets their own check-up, plan, history and coach on this device.','Setiap orang punya cek awal, program, catatan, dan pelatih sendiri di perangkat ini.')}</p>
     <div class="people">${PROFILES.map(p => { const pr = store.get('p:' + p.id + ':profile', {}) || {};
       return `<button class="person" data-person="${p.id}">${avatarFor(p)}<b>${p.pin && p.id !== CUR ? I('lock', 'sm') + ' ' : ''}${esc(p.name)}</b>${pr.age ? `<span class="agechip">${ageLabel(pr.age)}</span>` : ''}<span style="display:block">${pr.goal ? L(GOAL[pr.goal].n) : ''}</span></button>`; }).join('')}
@@ -774,7 +775,10 @@ const ALIAS = { today:'home', learn:'workouts', log:'progress' };
 function route() {
   paintChrome();
   if (!PROF) { if (WZ || !$('#picker').hidden) return; if (PROFILES.length) openPicker(); else openWizard(true); return; }
-  let v = location.hash.slice(1); if (ALIAS[v]) { history.replaceState(null, '', '#' + ALIAS[v]); v = ALIAS[v]; } if (!RENDER[v]) v = 'home';
+  const raw = location.hash.slice(1), parts = raw.split('/');
+  let v = parts[0]; window.ROUTE_ARG = decodeURIComponent(parts.slice(1).join('/'));
+  if (ALIAS[v]) { history.replaceState(null, '', '#' + ALIAS[v]); v = ALIAS[v]; } if (!RENDER[v]) v = RENDER.taman ? 'taman' : 'home';
+  document.body.classList.toggle('jkid', typeof isKidP === 'function' && isKidP());
   document.body.dataset.view = v;
   Object.keys(RENDER).forEach(k => { const el = $('#v-' + k); el.hidden = k !== v; if (k !== v) el.innerHTML = ''; });
   RENDER[v]();

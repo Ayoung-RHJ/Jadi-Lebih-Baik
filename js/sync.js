@@ -5,7 +5,7 @@
    the people list, workout log and weight log are merged instead.
    ========================================================= */
 const SYNC = { url:'https://kbrniessfsmnyqmbruxy.supabase.co', key:'sb_publishable_lvBaPQUCgmxBKl56xYIUBg_f55mKTaI' };
-const LOCAL_ONLY = new Set(['cur','lang','motion','planview','theme','welcomed','fam']);
+const LOCAL_ONLY = new Set(['cur','lang','motion','planview','theme','welcomed','welcomed_jlb','fam']);
 const syncable = k => !!k && !LOCAL_ONLY.has(k) && k[0] !== '_';
 const _rawSet = store.set;
 let MT = store.get('_mt', {}), DIRTY = new Set(store.get('_dirty', []));
@@ -22,6 +22,7 @@ const famSet = f => _rawSet('fam', f);
 /* ---- merging for lists that grow on more than one device ---- */
 const byKey = (a, b, key, preferB) => { const m = new Map(); (preferB ? a.concat(b) : b.concat(a)).forEach(x => { if (x) m.set(key(x), x); }); return [...m.values()]; };
 function mergeVal(k, local, remote, remoteNewer) {
+  if (typeof jlbMerge === 'function') { const j = jlbMerge(k, local, remote); if (j !== undefined) return j; }
   if (/^p:[^:]+:puasa$/.test(k) && local && remote && typeof local === 'object' && typeof remote === 'object' && !Array.isArray(local)) {
     const m = Object.assign({}, local); Object.keys(remote).forEach(d => { if (!m[d] || (remote[d].at || 0) >= (m[d].at || 0)) m[d] = remote[d]; }); return m;
   }
@@ -166,15 +167,15 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id
 /* ---- backup ---- */
 function exportBackup() {
   const data = {}; allLocalKeys().filter(syncable).forEach(k => { data[k] = store.get(k, null); });
-  const blob = new Blob([JSON.stringify({ app:'JurnalSehatKita', v:1, at:new Date().toISOString(), data }, null, 1)], { type:'application/json' });
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'JurnalSehatKita-backup-' + dkey(new Date()) + '.json';
+  const blob = new Blob([JSON.stringify({ app:'JLB', v:1, at:new Date().toISOString(), data }, null, 1)], { type:'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'JLB-backup-' + dkey(new Date()) + '.json';
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 function importBackup(file) {
   const rd = new FileReader();
   rd.onload = () => {
     let j; try { j = JSON.parse(rd.result); } catch (e) { j = null; }
-    if (!j || !['FitRHJ','JurnalSehatKita'].includes(j.app) || !j.data || typeof j.data !== 'object') { alert(tt('This isn’t a Jurnal Sehat Kita backup file.','Ini bukan file cadangan Jurnal Sehat Kita.')); return; }
+    if (!j || !['FitRHJ','JurnalSehatKita','JLB'].includes(j.app) || !j.data || typeof j.data !== 'object') { alert(tt('This isn’t a Jurnal Sehat Kita backup file.','Ini bukan file cadangan Jurnal Sehat Kita.')); return; }
     const n = (j.data.profiles || []).length, when = j.at ? niceDate(new Date(j.at)) : '';
     if (!confirm(tt(`Restore the backup from ${when} with ${n} people? It replaces the same data on this device${famGet() ? ' and for the whole family' : ''}.`, `Pulihkan cadangan ${when} berisi ${n} orang? Data yang sama di perangkat ini${famGet() ? ' dan seluruh keluarga' : ''} akan diganti.`))) return;
     Object.keys(j.data).filter(syncable).forEach(k => store.set(k, j.data[k]));
