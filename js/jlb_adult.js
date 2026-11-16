@@ -3,25 +3,46 @@
    Pohon Iman 40 hari, Mujahadah
    ========================================================= */
 const HABITS = {
-  tilawah:{ n:'Tilawah 1 halaman', p:'ibadah', ic:'tilawah', m:'Menjaga hubungan harian dengan Al-Qur\'an, sedikit tapi rutin.' },
-  dzikir:{ n:'Dzikir pagi dan petang', p:'ibadah', ic:'dzikir', m:'Hati lebih tenang dan hari dimulai dengan mengingat Allah.' },
-  dhuha:{ n:'Sholat Dhuha', p:'ibadah', ic:'dhuha', m:'Sholat sunnah di pagi hari, mengawali kerja dengan ibadah.' },
-  tahajud:{ n:'Tahajud', p:'ibadah', ic:'tahajud', m:'Waktu tenang untuk berdoa di sepertiga malam.' },
-  sedekah:{ n:'Sedekah', p:'ibadah', ic:'sedekah', m:'Melatih hati untuk berbagi, sekecil apa pun.' },
-  kajian:{ n:'Kajian atau mendengar ceramah', p:'ilmu', ic:'kajian', m:'Menambah ilmu agama secara teratur.' },
-  latihan:{ n:'Latihan 20 menit', p:'jasad', ic:'latihan', m:'Badan kuat untuk beribadah dan bekerja. Tercatat juga dari Latihan.' },
-  jalan:{ n:'Jalan kaki 30 menit', p:'jasad', ic:'jalan', m:'Jantung sehat, pikiran segar.' },
-  minum:{ n:'Minum air 8 gelas', p:'jasad', ic:'minum', m:'Tubuh terhidrasi, lebih fokus dan tidak mudah lelah.' },
-  tidur:{ n:'Tidur sebelum jam 22', p:'jasad', ic:'tidur', m:'Bangun Subuh lebih mudah, badan pulih.' },
-  baca:{ n:'Baca buku 10 halaman', p:'ilmu', ic:'baca', m:'Sedikit setiap hari, banyak dalam setahun.' },
-  belajar:{ n:'Belajar keterampilan 30 menit', p:'ilmu', ic:'belajar', m:'Terus bertumbuh dalam pekerjaan dan hidup.' },
-  telepon:{ n:'Telepon orang tua', p:'akhlak', ic:'telepon', m:'Menyambung silaturahmi dan berbakti.' },
-  bantu:{ n:'Bantu pekerjaan rumah', p:'akhlak', ic:'bantu_rumah', m:'Meringankan beban keluarga.' },
-  baik:{ n:'Tidak berkata kasar', p:'akhlak', ic:'berbuat_baik', m:'Menjaga lisan, menjaga hati orang lain.' },
-  rapikan:{ n:'Rapikan tempat tidur', p:'akhlak', ic:'rapikan', m:'Hari dimulai dengan satu hal yang selesai.' }
+  wudhu_bangun:{ n:'Wudhu saat bangun', p:'ibadah', ic:'wudhu', t:'malam', m:'Bangun langsung segar dan siap beribadah.' },
+  tahajud:{ n:'Tahajud', p:'ibadah', ic:'tahajud', t:'malam', m:'Waktu tenang untuk berdoa di sepertiga malam.' },
+  witir:{ n:'Witir', p:'ibadah', ic:'witir', fb:'tahajud', t:'malam', m:'Menutup sholat malam dengan rakaat ganjil.' },
+  istighfar:{ n:'Istighfar 10 menit', p:'ibadah', ic:'istighfar', fb:'dzikir', t:'malam', m:'Duduk tenang memohon ampun kepada Allah.' },
+  tilawah:{ n:'Tilawah 1 halaman', p:'ibadah', ic:'tilawah', t:'subuh', m:'Menjaga hubungan harian dengan Al-Qur\'an, sedikit tapi rutin, bersama terjemahnya.' },
+  dzikir:{ n:'Dzikir pagi dan petang', p:'ibadah', ic:'dzikir', t:'subuh', m:'Hati lebih tenang dan hari dimulai dengan mengingat Allah.' },
+  tadabbur:{ n:'Tadabbur dan catat 1 pelajaran', p:'ilmu', ic:'tadabbur', fb:'tilawah', t:'subuh', m:'Merenungkan ayat dan menulis satu hal untuk diamalkan hari ini.' },
+  waqiah:{ n:'Surat Al-Waqi\'ah', p:'ibadah', ic:'surat_harian', fb:'tilawah', t:'subuh', m:'Menjaga bacaan surat harian.' },
+  rapikan:{ n:'Rapikan tempat tidur', p:'akhlak', ic:'rapikan', t:'pagi', m:'Hari dimulai dengan satu hal yang selesai.' },
+  latihan:{ n:'Latihan 20 menit', p:'jasad', ic:'latihan', t:'pagi', m:'Badan kuat untuk beribadah dan bekerja. Tercatat juga dari Latihan.' },
+  sarapan:{ n:'Sarapan halal dan thayyib', p:'jasad', ic:'sarapan', fb:'minum', t:'pagi', m:'Makanan yang halal dan baik memberi tenaga untuk hari ini.' },
+  peluk:{ n:'Peluk keluarga sebelum berangkat', p:'akhlak', ic:'peluk_keluarga', fb:'berbuat_baik', t:'pagi', m:'Pamit dengan hangat, keluarga merasa disayang.' },
+  dhuha:{ n:'Sholat Dhuha', p:'ibadah', ic:'dhuha', t:'pagi', m:'Sholat sunnah di pagi hari, mengawali kerja dengan ibadah.' },
+  kerja_fokus:{ n:'Kerja fokus (deep work)', p:'ilmu', ic:'kerja_fokus', fb:'belajar', t:'pagi', m:'Menutup gangguan dan mengerjakan amanah dengan sungguh-sungguh.' },
+  belajar:{ n:'Belajar keterampilan 30 menit', p:'ilmu', ic:'belajar', t:'pagi', m:'Terus bertumbuh dalam pekerjaan dan hidup.' },
+  minum:{ n:'Minum air 8 gelas', p:'jasad', ic:'minum', t:'siang', m:'Tubuh terhidrasi, lebih fokus dan tidak mudah lelah.' },
+  qailulah:{ n:'Qailulah 15–20 menit', p:'jasad', ic:'qailulah', fb:'tidur', t:'siang', m:'Tidur siang sebentar, badan dan pikiran pulih.' },
+  muamalah:{ n:'Muamalah jujur (cek tugas dan kontrak)', p:'akhlak', ic:'muamalah', fb:'berbuat_baik', t:'siang', m:'Memeriksa pekerjaan dan perjanjian agar adil bagi semua.' },
+  sedekah:{ n:'Sedekah', p:'ibadah', ic:'sedekah', t:'siang', m:'Melatih hati untuk berbagi, sekecil apa pun.' },
+  baik:{ n:'Tidak berkata kasar', p:'akhlak', ic:'berbuat_baik', t:'siang', m:'Menjaga lisan, menjaga hati orang lain.' },
+  jalan:{ n:'Jalan kaki 30 menit', p:'jasad', ic:'jalan', t:'sore', m:'Jantung sehat, pikiran segar.' },
+  telepon:{ n:'Telepon orang tua', p:'akhlak', ic:'telepon', t:'sore', m:'Menyambung silaturahmi dan berbakti.' },
+  bantu:{ n:'Bantu pekerjaan rumah', p:'akhlak', ic:'bantu_rumah', t:'sore', m:'Meringankan beban keluarga.' },
+  tanpa_hp:{ n:'Zona tanpa HP saat Maghrib', p:'akhlak', ic:'tanpa_hp', fb:'telepon', t:'maghrib', m:'HP disimpan, perhatian penuh untuk keluarga.' },
+  makan_bersama:{ n:'Makan malam bersama keluarga', p:'akhlak', ic:'makan_bersama', fb:'bantu_rumah', t:'maghrib', m:'Makan bersama dan mendengarkan cerita hari ini.' },
+  yasin:{ n:'Surat Yasin', p:'ibadah', ic:'surat_harian', fb:'tilawah', t:'maghrib', m:'Menjaga bacaan surat harian.' },
+  cerita_anak:{ n:'Cerita Nabi untuk anak 20 menit', p:'ilmu', ic:'cerita_anak', fb:'baca', t:'isya', m:'Menanamkan teladan para Nabi lewat cerita.' },
+  kajian:{ n:'Kajian atau mendengar ceramah', p:'ilmu', ic:'kajian', t:'isya', m:'Menambah ilmu agama secara teratur.' },
+  baca:{ n:'Baca buku 10 halaman', p:'ilmu', ic:'baca', t:'isya', m:'Sedikit setiap hari, banyak dalam setahun.' },
+  mulk:{ n:'Surat Al-Mulk sebelum tidur', p:'ibadah', ic:'surat_harian', fb:'tilawah', t:'isya', m:'Menjaga bacaan surat harian sebelum tidur.' },
+  muhasabah:{ n:'Muhasabah dan memaafkan', p:'ibadah', ic:'muhasabah', fb:'kajian', t:'isya', m:'Menghitung diri hari ini dan memaafkan semua orang.' },
+  ngobrol_pasangan:{ n:'Ngobrol dengan pasangan', p:'akhlak', ic:'ngobrol_pasangan', fb:'berbuat_baik', t:'isya', m:'Menjaga suasana rumah dengan saling mendengar.' },
+  adab_tidur:{ n:'Adab tidur (wudhu, doa, miring kanan)', p:'ibadah', ic:'tidur', t:'isya', m:'Tidur dalam keadaan suci dan berdoa.' },
+  tidur:{ n:'Tidur sebelum jam 22', p:'jasad', ic:'tidur', t:'isya', m:'Bangun Subuh lebih mudah, badan pulih.' },
+  puasa:{ n:'Puasa sunnah', p:'ibadah', ic:'puasa', t:'subuh', cal:true, m:'Muncul sendiri di hari puasa sunnah menurut kalender: Senin, Kamis, Ayyamul Bidh, Arafah, Tasu’a, Asyura, dan 6 hari Syawal.' }
 };
+const SLOT_I = Object.fromEntries(SLOTS.map((x, i) => [x[0], i]));
+const bySlot = l => l.slice().sort((a, b) => SLOT_I[HABITS[a].t] - SLOT_I[HABITS[b].t]);
 const DEF_HABITS = ['tilawah', 'dzikir', 'latihan', 'minum', 'baca', 'telepon'];
-const myHabits = () => jget('habits', DEF_HABITS).filter(h => HABITS[h]);
+const myHabits = () => bySlot(jget('habits', DEF_HABITS).filter(h => HABITS[h] && !HABITS[h].cal));
 const STOPS = [
   ['islam', 'Yaqazah', 'Bangun dari kelalaian hati', 'Duduk hening 10 menit sebelum Subuh, mengingat kembalinya kita kepada Allah', 'QS Saba’ 34:46', 'p_yaqazah', 'Bangun dari lalai, siap jadi lebih baik', 'Bangun untuk Subuh atau sekolah tanpa mengeluh'],
   ['islam', 'Taubah', 'Kembali kepada Allah dan meninggalkan kebiasaan buruk', 'Saat tergelincir, segera istighfar dan tinggalkan satu kebiasaan buruk tertentu', 'QS At-Tahrim 66:8 · Ali ‘Imran 3:135', 'p_taubah', 'Kalau salah, kembali kepada Allah dan minta maaf', 'Ucapkan astaghfirullah saat salah, lalu minta maaf'],
@@ -89,13 +110,15 @@ function renderTaman() {
     <h1>Assalamu’alaikum, ${esc(PROF.name)}</h1>
     <span style="opacity:.9">${P.next ? 'Berikutnya ' + PRN[P.next] + ' ' + hm(P.t[P.next]) : 'Waktu Isya, istirahat yang cukup ya'} · ${esc(setting('city', 'Jakarta'))}</span></section>
   ${petiInbox()}
+  ${fastCard(d)}
   <section class="jcard" aria-label="Amaliyah sholat"><div class="jrow sp"><h2>Amaliyah sholat</h2>${isWoman() ? `<button class="jchip" data-jh aria-pressed="${!!d.h}">Berhalangan</button>` : ''}</div>
     <div class="jam" role="group">${strip}</div><div class="jrow sp"><b>${PRN[op]}</b><span class="jmut">${hm(P.t[op])}</span></div>${sheet}</section>
   <section class="jcard" aria-label="Taman"><div class="jrow sp"><h2>Tamanku</h2><span class="jmut">7 hari terakhir</span></div>
     <div style="position:relative;border-radius:18px;overflow:hidden;padding-top:8px;background:linear-gradient(180deg,#CFE6FF,#EAF5D8 70%)"><div class="jplants">${Object.keys(PILLAR).map(k => { const n = stageOf(act[k]);
       return `<div><img src="${jimg('taman/plant_' + PILLAR[k].plant + '_' + n + '.webp')}" alt="Tanaman ${PILLAR[k].n} tahap ${n}" loading="lazy" decoding="async" width="120" height="180"><span style="background:${PILLAR[k].c}">${PILLAR[k].n}</span></div>`; }).join('')}</div><div style="height:16px;background:#B98B54"></div></div></section>
   <section class="jcard" aria-label="Amal hari ini"><div class="jrow sp"><h2>Amal hari ini</h2><a href="#amal" class="jmut">Semua</a></div>
-    ${hb.slice(0, 4).map(h => habBtn(h, d)).join('')}</section>
+    ${(() => { const sn = slotNow(now), i0 = SLOT_I[sn], rot = hb.slice().sort((a, b) => ((SLOT_I[HABITS[a].t] - i0 + 7) % 7) - ((SLOT_I[HABITS[b].t] - i0 + 7) % 7)).slice(0, 5);
+      return `<span class="jmut">Sekarang: <b>${SLOTS[i0][1]}</b></span>` + rot.map(h => habBtn(h, d, HABITS[h].t === sn)).join(''); })()}</section>
   <section class="jsplit" style="display:grid;gap:16px">
     <a class="jcard" href="#perjalanan" style="text-decoration:none;color:inherit"><span class="jmut">Perjalanan · ${CHAP[st[0]]}</span><h2>${st[1]}</h2><p class="jmut">${esc(st[3])}</p>
       <div class="jbar"><i style="width:${Math.min(100, J.n / STOP_DAYS * 100)}%"></i></div><span class="jmut">${J.n} dari ${STOP_DAYS} hari</span></a>
@@ -103,9 +126,9 @@ function renderTaman() {
     ${fri ? `<a class="jcard" href="#keluarga" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center"><img src="${jimg('anak/chest.webp')}" alt="" width="64" height="64"><span><h2>Rekap Keluarga Jumat</h2><span class="jmut">Ketuk untuk membuka</span></span></a>` : ''}
   </section></div>`;
 }
-function habBtn(h, d) {
+function habBtn(h, d, now) {
   const H = HABITS[h], on = !!(d.a || {})[h];
-  return `<button class="jhab" data-jhab="${h}" aria-pressed="${on}">${jicon(H.ic)}<span><b>${esc(H.n)}</b><small>${PILLAR[H.p].n}</small></span><span class="ck">${on ? '✓' : ''}</span></button>`;
+  return `<button class="jhab${now ? ' jnow' : ''}" data-jhab="${h}" aria-pressed="${on}">${jicon(H.ic, '', H.fb)}<span><b>${esc(H.n)}</b><small>${SLOTS[SLOT_I[H.t]][1]} · ${PILLAR[H.p].n}</small></span><span class="ck">${on ? '✓' : ''}</span></button>`;
 }
 
 /* ---------------- Amal ---------------- */
@@ -116,7 +139,7 @@ function renderAmal() {
   $('#v-amal').innerHTML = `<div class="jw"><div class="jrow sp" style="padding-top:8px"><h1>Amal</h1><span class="jpill">${Object.keys(d.a || {}).length} dari ${hb.length} hari ini</span></div>
   ${groups.map(([k, l]) => `<section class="jcard"><div class="jrow"><span style="width:12px;height:12px;border-radius:50%;background:${PILLAR[k].c}"></span><h2>${PILLAR[k].n}</h2></div>${l.map(h => `<div class="jrow">${habBtn(h, d)}<a href="#detail/${h}" class="jback" style="background:var(--jsoft)" aria-label="Detail ${esc(HABITS[h].n)}">${I('chev')}</a></div>`).join('')}</section>`).join('')}
   <section class="jcard"><div class="jrow"><span style="font-size:1.4rem">🌱</span><h2>Saran Amal</h2></div><p class="jmut">Pilih kebiasaan baru sesuai kemampuanmu. Setiap amal punya manfaatnya.</p>${jbtn(SARAN ? 'Tutup daftar' : 'Lihat saran amal', 'data-saran', 'ghost block')}
-  ${SARAN ? Object.keys(HABITS).map(h => { const on = hb.includes(h); return `<div class="jhab" style="cursor:default">${jicon(HABITS[h].ic)}<span><b>${esc(HABITS[h].n)}</b><small>${esc(HABITS[h].m)}</small></span>${jbtn(on ? 'Hapus' : 'Tambah', `data-hadd="${h}"`, on ? 'ghost' : 'green')}</div>`; }).join('') : ''}</section>
+  ${SARAN ? bySlot(Object.keys(HABITS).filter(h => !HABITS[h].cal)).map(h => { const on = hb.includes(h); return `<div class="jhab" style="cursor:default">${jicon(HABITS[h].ic, '', HABITS[h].fb)}<span><b>${esc(HABITS[h].n)}</b><small>${esc(HABITS[h].m)}</small></span>${jbtn(on ? 'Hapus' : 'Tambah', `data-hadd="${h}"`, on ? 'ghost' : 'green')}</div>`; }).join('') : ''}</section>
   <a class="jcard" href="#rekap" style="text-decoration:none;color:inherit"><h2>Lihat rekap</h2><span class="jmut">Pekan, bulan, kuartal, sampai tahun</span></a></div>`;
 }
 
@@ -200,7 +223,7 @@ function render40() {
       ${ayatHTML('p_pohon')}
       <section class="jcard"><label for="niat40"><b>Niatku</b></label><textarea id="niat40" class="inp" rows="3" placeholder="Aku ingin lebih dekat dengan Allah dan lebih sabar di rumah.">${esc((P && P.niat) || '')}</textarea><span class="jmut">Muncul lagi di hari ke-40.</span></section>
       <section class="jcard"><div class="jrow sp"><h2>Pilih amal</h2><span class="jpill">${sel.length} dipilih · 3–5</span></div>
-        <div class="jgrid2">${Object.keys(HABITS).map(h => `<button class="jhab" data-p40sel="${h}" aria-pressed="${sel.includes(h)}" style="flex-direction:column;align-items:flex-start">${jicon(HABITS[h].ic)}<b style="font-size:.85rem">${esc(HABITS[h].n)}</b></button>`).join('')}</div></section>
+        <div class="jgrid2">${bySlot(Object.keys(HABITS).filter(h => !HABITS[h].cal)).map(h => `<button class="jhab" data-p40sel="${h}" aria-pressed="${sel.includes(h)}" style="flex-direction:column;align-items:flex-start">${jicon(HABITS[h].ic)}<b style="font-size:.85rem">${esc(HABITS[h].n)}</b></button>`).join('')}</div></section>
       <section class="jcard" style="background:var(--jsoft)"><span>• Satu hari dihitung jika semua amal pilihan selesai.</span><span>• 1 perisai per pekan untuk hari yang terlewat.</span><span>• Terlewat tanpa perisai? Lanjut, tidak mulai dari nol.</span></section>
       ${jbtn('Bismillah, tanam sekarang', 'data-p40go', 'navy block')}</div>`;
     return;
@@ -322,3 +345,20 @@ document.addEventListener('click', async e => {
   renderTaman();
 });
 addEventListener('hashchange', () => PUNL.clear());
+
+/* ---------- Puasa sunnah card (from the app calendar) ---------- */
+function fastCard(d) {
+  const f = fastToday(); if (!f.length || d.h) return '';
+  const done = !!(d.a || {}).puasa || (typeof fastAt === 'function' && !!fastAt(todayK()) && FASTED(fastAt(todayK()).s));
+  const names = f.map(k => FAST_ID[k]).join(' dan '), sy = f.includes('syawal') ? ` · ke-${Math.min(6, syawalCount() + (done && !(d.a || {}).puasa ? 1 : 0)) || 1} dari 6` : '';
+  return `<section class="jcard" style="border:2px solid var(--jg)"><span class="jmut">Hari ini menurut kalender</span>
+    <button class="jhab" data-jfast aria-pressed="${done}">${jicon(FAST_IC[f[0]], '', 'puasa')}<span><b>Puasa sunnah ${esc(names)}</b><small>${done ? 'Alhamdulillah, tercatat' : 'Ketuk kalau hari ini berpuasa'}${sy}</small></span><span class="ck">${done ? '✓' : ''}</span></button></section>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-jfast]'); if (!b) return;
+  const tk = todayK(); let on = false;
+  dayPut(tk, d => { d.a = Object.assign({}, d.a || {}); if (d.a.puasa) delete d.a.puasa; else { d.a.puasa = 1; on = true; } });
+  if (typeof setFast === 'function') setFast(tk, on ? 'y' : '');
+  if (on) jtoast('Semoga Allah menerima puasamu. +5 XP');
+  renderTaman();
+});

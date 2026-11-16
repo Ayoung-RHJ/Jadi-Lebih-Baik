@@ -211,7 +211,7 @@ let RD = null;
 const RCAT = ['Doa', 'Sholat', 'Nabi', 'Sirah', 'Quran', 'Akhlak'];
 function renderRoda() {
   const tk = todayK(), R = jget('roda', {}), done = R[tk];
-  const misi = isKidP() ? (typeof ortu === 'function' ? ortu().missions : []) : [], d = dayOf(tk), allMisi = !misi.length || misi.every(m => (d.m || {})[m]);
+  const misi = isKidP() ? (typeof ortu === 'function' ? kidMissionsToday(ortu().missions) : []) : [], d = dayOf(tk), allMisi = !misi.length || misi.every(m => (d.m || {})[m]);
   if (!RD) RD = { rot:0, cat:null, q:null, pick:null };
   $('#v-belajar').innerHTML = `<div class="jw" style="background:#0F1D3D;color:#fff;margin-top:-12px;padding-top:12px;min-height:100vh">
     <div class="jrow">${back('#belajar', 'Tutup')}<h1 style="color:#fff">Roda Ilmu</h1></div><p style="opacity:.8">1 putaran hari ini · benar +5 XP, mencoba +2 XP</p>

@@ -5,9 +5,9 @@ const MISSIONS = {
   doa_bangun:{ n:'Doa bangun tidur', ic:'doa_bangun' }, sikat:{ n:'Sikat gigi pagi dan malam', ic:'sikat_gigi' }, minum:{ n:'Minum air 6 gelas', ic:'minum' },
   rapikan:{ n:'Rapikan tempat tidur', ic:'rapikan' }, bantu:{ n:'Bantu pekerjaan rumah', ic:'bantu_rumah' }, baca:{ n:'Membaca atau Iqro 1 halaman', ic:'baca' },
   baik:{ n:'Berbuat baik kepada saudara', ic:'berbuat_baik' }, jalan:{ n:'Main di luar 20 menit', ic:'jalan' }, tidur:{ n:'Tidur tepat waktu', ic:'tidur' },
-  telepon:{ n:'Telepon kakek atau nenek', ic:'telepon' }
+  telepon:{ n:'Telepon kakek atau nenek', ic:'telepon' }, puasa:{ n:'Belajar puasa', ic:'belajar_puasa', fb:'puasa' }
 };
-const ortu = id => Object.assign({ cap:240, chat:true, limit:10, missions:Object.keys(MISSIONS).filter(m => m !== 'telepon'), marks:{} }, pget(id || CUR, 'jlb:ortu', {}) || {});
+const ortu = id => Object.assign({ cap:240, chat:true, limit:10, missions:Object.keys(MISSIONS).filter(m => m !== 'telepon' && m !== 'puasa'), marks:{} }, pget(id || CUR, 'jlb:ortu', {}) || {});
 const BADGES_K = [
   ['subuh7', 'Subuh 7 hari', 'emas', 'sholat'], ['lengkap7', 'Sholat lengkap 7 hari', 'emas', 'sunnah'], ['doabangun', 'Doa bangun 14 kali', 'perak', 'doa_bangun'],
   ['pembantu', 'Pembantu hebat', 'perunggu', 'bantu_rumah'], ['iqro', 'Iqro 10 hari', 'perak', 'baca'], ['fatihah', 'Hafal Al-Fatihah', 'perak', 'tilawah'],
@@ -58,11 +58,11 @@ function renderKidHome() {
 
 /* ---------------- Misi (papan stiker) ---------------- */
 function renderMisi() {
-  const d = dayOf(todayK()), list = ortu().missions.filter(m => MISSIONS[m]);
+  const d = dayOf(todayK()), list = kidMissionsToday(ortu().missions.filter(m => MISSIONS[m]));
   const n = list.filter(m => (d.m || {})[m]).length;
   $('#v-amal').innerHTML = `<div class="jw jkidw"><div class="jrow sp" style="padding-top:8px"><h1>Misi hari ini</h1><span class="jpill">${n} dari ${list.length}</span></div>
     <div class="jbar"><i style="width:${list.length ? n / list.length * 100 : 0}%"></i></div>
-    <div class="jstk">${list.map(m => { const on = !!(d.m || {})[m]; return `<button data-kmis="${m}" aria-pressed="${on}"><img src="${jimg('ikon/' + MISSIONS[m].ic + '.webp')}" alt="" width="54" height="54" loading="lazy">${esc(MISSIONS[m].n)}</button>`; }).join('')}</div>
+    <div class="jstk">${list.map(m => { const on = !!(d.m || {})[m]; return `<button data-kmis="${m}" aria-pressed="${on}"><img src="${jimg('ikon/' + MISSIONS[m].ic + '.webp')}" alt="" width="54" height="54" loading="lazy"${MISSIONS[m].fb ? ` onerror="this.onerror=null;this.src='${jimg('ikon/' + MISSIONS[m].fb + '.webp')}'"` : ''}>${esc(MISSIONS[m].n)}</button>`; }).join('')}</div>
     <p class="jmut">Setiap misi +5 XP. Selesaikan 1 misi untuk bisa memandikan Jimon.</p></div>`;
 }
 
@@ -154,6 +154,7 @@ document.addEventListener('click', async e => {
   if (ds.klan) { dayPut(tk, d => { d.s = d.s || {}; const s = Object.assign({}, d.s[ds.klan] || {}); s.f = s.f ? 0 : 1; d.s[ds.klan] = s; });
     if (dayOf(tk).s[ds.klan].f) { jtoast('Lentera ' + PRN[ds.klan] + ' menyala! +10 XP'); checkLevelUp(); } return renderKidHome(); }
   if (ds.kmis) { dayPut(tk, d => { d.m = Object.assign({}, d.m || {}); if (d.m[ds.kmis]) delete d.m[ds.kmis]; else d.m[ds.kmis] = 1; });
+    if (ds.kmis === 'puasa' && typeof setFast === 'function') setFast(tk, (dayOf(tk).m || {}).puasa ? 'half' : '');
     if ((dayOf(tk).m || {})[ds.kmis]) { jtoast('Misi selesai! +5 XP'); checkLevelUp(); } return renderMisi(); }
   if (ds.kpet !== undefined) { if (jimonDirt() || KBATH) return; KPET++; renderKamar(); clearTimeout(window._kp); window._kp = setTimeout(() => { if (KPET % 2) { KPET++; if (document.body.dataset.view === 'saya') renderKamar(); } }, 1700); return; }
   if (ds.kbath !== undefined) { KBATH = true; renderKamar(); setTimeout(() => { KBATH = false; jset('jimon', Object.assign({}, jget('jimon', {}), { bath:tk })); jtoast('Wah, wangi! Terima kasih sudah merawatku.'); if (document.body.dataset.view === 'saya') renderKamar(); }, 1800); return; }

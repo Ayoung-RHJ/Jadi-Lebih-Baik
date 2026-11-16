@@ -3,7 +3,7 @@
    XP and levels, Jimon state, lazy modules, tabs and routes.
    All data lives in the same corner3:* storage and syncs like the rest.
    ========================================================= */
-const JLB_VER = 'jlb5';
+const JLB_VER = 'jlb6';
 const JIMG = 'img/jlb/';
 const PR = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
 const PRN = { subuh:'Subuh', dzuhur:'Dzuhur', ashar:'Ashar', maghrib:'Maghrib', isya:'Isya' };
@@ -146,7 +146,26 @@ function jimonHTML(o = {}) {
 
 /* ---- small UI helpers ---- */
 const jbtn = (label, attrs = '', cls = '') => `<button class="jb ${cls}" ${attrs}>${label}</button>`;
-const jicon = (n, alt = '') => `<img class="jic" src="${jimg('ikon/' + n + '.webp')}" alt="${esc(alt)}" width="44" height="44" loading="lazy" decoding="async">`;
+const jicon = (n, alt = '', fb = '') => `<img class="jic" src="${jimg('ikon/' + n + '.webp')}" alt="${esc(alt)}" width="44" height="44" loading="lazy" decoding="async"${fb && fb !== n ? ` onerror="this.onerror=null;this.src='${jimg('ikon/' + fb + '.webp')}'"` : ''}>`;
+/* Parts of the day, in order (amal follow the day like a calendar) */
+const SLOTS = [['malam', 'Sepertiga malam'], ['subuh', 'Subuh'], ['pagi', 'Pagi'], ['siang', 'Siang'], ['sore', 'Sore'], ['maghrib', 'Maghrib'], ['isya', 'Malam']];
+function slotNow(date = new Date()) {
+  const t = prayerTimes(date, setting('city', 'Jakarta')), m = date.getHours() * 60 + date.getMinutes();
+  return m < t.subuh ? 'malam' : m < t.subuh + 90 ? 'subuh' : m < t.dzuhur ? 'pagi' : m < t.ashar ? 'siang' : m < t.maghrib ? 'sore' : m < t.isya ? 'maghrib' : 'isya';
+}
+/* Puasa sunnah from the app calendar (js/calendar.js) */
+const FAST_IC = { mon:'puasa_senin_kamis', thu:'puasa_senin_kamis', bidh:'ayyamul_bidh', arafah:'arafah', tasua:'asyura', asyura:'asyura', syawal:'syawal' };
+const FAST_ID = { mon:'Senin', thu:'Kamis', bidh:'Ayyamul Bidh', arafah:'Arafah', tasua:'Tasu’a', asyura:'Asyura', syawal:'6 hari Syawal' };
+function syawalCount(id, date = new Date()) {
+  const h = hijri(date), all = pget(id || CUR, 'jlb:day', {}) || {};
+  return Object.keys(all).filter(k => { if (!(all[k].a || {}).puasa) return false; const x = hijri(kOf(k)); return x.y === h.y && x.m === 10; }).length;
+}
+function fastToday(id, date = new Date()) {
+  const x = dayInfo(date); let f = x.fast.slice();
+  if (f.includes('syawal') && syawalCount(id, date) >= 6 && !(dayOf(todayK(), id).a || {}).puasa) f = f.filter(k => k !== 'syawal');
+  return f;
+}
+const kidMissionsToday = list => list.filter(m => m !== 'puasa' || dayInfo(new Date()).fasting);
 function jtoast(t) { let el = $('#jToast'); if (!el) { el = document.createElement('div'); el.id = 'jToast'; el.className = 'jtoast'; el.setAttribute('role', 'status'); document.body.appendChild(el); } el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2200); }
 const hijriShort = d => { const h = hijri(d); return h.d + ' ' + HMON[LANG][h.m - 1]; };
 function back(href, label = 'Kembali') { return `<a class="jback" href="${href}" aria-label="${label}">${I('chev', 'flip')}</a>`; }
