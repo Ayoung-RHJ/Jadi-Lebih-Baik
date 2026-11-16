@@ -4,13 +4,13 @@
    - pictures and fonts: cache first
    - anything else (Supabase sync, other sites): never touched
    Bump VER on every release. */
-const VER = 'jlb1';
+const VER = 'jlb2';
 const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v1';
 const PRE = ['./', 'index.html', 'manifest.webmanifest',
-  'css/app.css?v=jlb1', 'css/jlb.css?v=jlb1',
-  'js/core.js?v=jlb1', 'js/sync.js?v=jlb1', 'js/figures.js?v=jlb1', 'js/data.js?v=jlb1', 'js/engine.js?v=jlb1',
-  'js/calendar.js?v=jlb1', 'js/dalil_data.js?v=jlb1', 'js/journal.js?v=jlb1', 'js/ui.js?v=jlb1', 'js/player.js?v=jlb1',
-  'js/handwrap.js?v=jlb1', 'js/workouts.js?v=jlb1', 'js/jlb_core.js?v=jlb1', 'js/boot.js?v=jlb1',
+  'css/app.css?v=jlb2', 'css/jlb.css?v=jlb2',
+  'js/core.js?v=jlb2', 'js/sync.js?v=jlb2', 'js/figures.js?v=jlb2', 'js/data.js?v=jlb2', 'js/engine.js?v=jlb2',
+  'js/calendar.js?v=jlb2', 'js/dalil_data.js?v=jlb2', 'js/journal.js?v=jlb2', 'js/ui.js?v=jlb2', 'js/player.js?v=jlb2',
+  'js/handwrap.js?v=jlb2', 'js/workouts.js?v=jlb2', 'js/jlb_core.js?v=jlb2', 'js/boot.js?v=jlb2',
   'img/jlb/brand/emblem-96.webp'];
 
 self.addEventListener('install', e => {
@@ -33,7 +33,7 @@ self.addEventListener('fetch', e => {
       .catch(() => caches.match('index.html')));
     return;
   }
-  if (isFont(u) || /\.(webp|png|jpe?g|svg|gif|woff2?)$/i.test(u.pathname)) {
+  if (isFont(u) || /\.(webp|png|jpe?g|svg|gif|woff2?|mp3)$/i.test(u.pathname)) {
     e.respondWith(caches.open(IMG).then(c => c.match(r).then(hit => hit || fetch(r).then(res => { if (res.ok || res.type === 'opaque') c.put(r, res.clone()); return res; }))));
     return;
   }
