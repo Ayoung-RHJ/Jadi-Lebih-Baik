@@ -1,4 +1,6 @@
-# FitRHJ
+# JLB · Jadi Lebih Baik
+
+Fastabiqul Khairat. Built on FitRHJ / Jurnal Sehat Kita (the training part keeps that name).
 
 Plain static site, no build step. Deploy this whole folder to Netlify (drag and drop the folder or the zip).
 Keep it on the same Netlify site address so everyone's saved data (browser storage, keys `corner3:*`) stays.
@@ -17,7 +19,17 @@ Keep it on the same Netlify site address so everyone's saved data (browser stora
 - `js/ui.js`: header, tabs, profile picker, check-up, Home, Plan, Workouts, Progress, Me, settings
 - `js/player.js`: session player
 - `js/workouts.js`: quick workout, My workouts and the builder
-- `js/boot.js`: welcome popup and start-up
+- `js/boot.js`: welcome popup, start-up, service worker registration
+- `js/jlb_core.js`: JLB shared code: day records, prayer times, XP and levels, Peti Jumat, Jimon picture and dust, new tabs and routes, sync merge
+- `js/jlb_adult.js`: Taman, Amal, habit detail, Saya, Perjalanan, program 40 hari, Mujahadah (loaded on demand)
+- `js/jlb_kids.js`: kids' Beranda, Misi, Kamar Jimon, Peti Jumat, Ruang Orang Tua (loaded on demand)
+- `js/jlb_jimon.js`: Jimon Pintar chat, offline, answers only from checked content (loaded on demand)
+- `js/jlb_learn.js`: Peta Belajar, lessons, kisah, Roda Ilmu (loaded on demand)
+- `js/jlb_rekap.js`: Rekap, Hijriah and Ramadan, Keluarga (loaded on demand)
+- `js/jlb_ayat.json`: Arabic and Kemenag translation for the ayat and hadith in JLB (from quran-json / quranenc and hadith-api). Never type Arabic by hand.
+- `css/jlb.css`: JLB styles
+- `manifest.webmanifest`, `sw.js`, `_headers`: install-to-home-screen, offline use, Netlify caching
+- `img/jlb/`: all JLB pictures (brand, langit, taman, ikon, anak, belajar, keluarga, jimon)
 - `img/brand`, `img/avatars`, `img/slides`, `img/fig`: images
 
 ## Adding a character pose
@@ -50,3 +62,13 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - Activities are saved in the person's log with `kind:'act'`, so streak, minutes, energy and the calendar count them.
 - Fasting answers: `corner3:p:<id>:puasa` = { date: { s:'y'|'half'|'n'|'h', k, at } }. Merged per date when syncing.
 - To change a reminder, edit `js/dalil_data.js`, or send the change and it will be regenerated from the sources.
+
+## JLB release notes
+- **Version number.** Every script and stylesheet link ends in `?v=jlb1`, and `sw.js` has `VER = 'jlb1'`.
+  When you change any js or css file, change `jlb1` to `jlb2` everywhere (index.html, sw.js `VER` and `PRE`, and `JLB_VER` in `js/jlb_core.js`).
+  Otherwise phones keep the old file for up to a week.
+- **New keys** (all per person, `corner3:p:<id>:jlb:*`): `day` (amaliyah, habits, missions, berhalangan, per date),
+  `habits`, `set` (rawatib, city), `learn`, `roda`, `peti`, `jalan`, `40`, `jimon`, `ortu`, `chat`, `chatn`, `mjh`. `day`, `learn`, `peti`, `roda` and `jalan` merge per entry when syncing.
+- **Private:** `mjh` (Mujahadah) is encrypted on the phone with its own 6-digit PIN before it is saved or synced, and never appears in Keluarga, Rekap or stats.
+  Berhalangan days are never shown to the family.
+- **Address:** still fitrhj.netlify.app. Moving to a new address later needs the backup export/import or a redirect, because browser storage belongs to the address.
