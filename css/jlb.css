@@ -202,3 +202,8 @@ body.nomotion .jw *,body.nomotion .jw *::before{animation:none!important;transit
 @media (prefers-reduced-motion:reduce){.jw *,.jw *::before{animation:none!important;transition:none!important}.jwframes{display:none}.jsit{opacity:1}}
 
 @media (max-width:350px){.jstone{width:88px}.jstone b{font-size:.64rem;padding:0 4px}}
+.jlisten,.jqari{display:none}
+body.jaudio .jlisten{display:inline-flex;align-self:flex-start;min-height:44px}
+body.jaudio .jqari{display:block}
+.jqari::before{content:var(--qari)}
+.jlisten[aria-pressed="true"]{border-color:var(--jg);color:var(--jg)}
