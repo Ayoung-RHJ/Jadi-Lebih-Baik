@@ -3,7 +3,7 @@
    XP and levels, Jimon state, lazy modules, tabs and routes.
    All data lives in the same corner3:* storage and syncs like the rest.
    ========================================================= */
-const JLB_VER = 'jlb1';
+const JLB_VER = 'jlb2';
 const JIMG = 'img/jlb/';
 const PR = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
 const PRN = { subuh:'Subuh', dzuhur:'Dzuhur', ashar:'Ashar', maghrib:'Maghrib', isya:'Isya' };
@@ -203,3 +203,31 @@ function jlbMerge(k, local, remote) {
   Object.keys(remote).forEach(d => { const a = m[d], b = remote[d]; if (!a || ((b && b.at) || 0) >= ((a && a.at) || 0)) m[d] = b; });
   return m;
 }
+
+/* ---------- Ayat audio ----------
+   Streams verse-by-verse recordings from everyayah.com (free for non-commercial use, reciter credited).
+   To host the files yourself instead, upload img/jlb/audio/SSSAAA.mp3 plus img/jlb/audio/qari.json
+   ({"name":..., "sumber":...}); that file then takes over. The device voice never reads the Quran. */
+let QARI = { name:'Syaikh Mishary Rashid Alafasy', sumber:'everyayah.com', base:'https://everyayah.com/data/Alafasy_128kbps/' }, JPLAY = null;
+function qariOn(q) { QARI = q; document.body.classList.add('jaudio');
+  document.documentElement.style.setProperty('--qari', JSON.stringify('Tilawah: ' + q.name + (q.sumber ? ' · ' + q.sumber : ''))); }
+qariOn(QARI);
+fetch(JIMG + 'audio/qari.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null).then(q => {
+  if (q && q.name) qariOn(Object.assign({ base:JIMG + 'audio/' }, q));
+});
+function listenBtn(a) { return a && a.s ? `<button type="button" class="jb ghost jlisten" data-listen="${a.s}:${a.a}:${a.b || a.a}" aria-pressed="false">Dengarkan</button><span class="jsrc jqari"></span>` : ''; }
+const pad3 = n => String(n).padStart(3, '0');
+function stopListen() { if (!JPLAY) return; JPLAY.au.pause(); JPLAY.btn.setAttribute('aria-pressed', 'false'); JPLAY.btn.textContent = 'Dengarkan'; JPLAY = null; }
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-listen]'); if (!b || !QARI) return;
+  if (JPLAY && JPLAY.btn === b) return stopListen();
+  stopListen(); if ('speechSynthesis' in window) speechSynthesis.cancel();
+  const [s, a, z] = b.dataset.listen.split(':').map(Number), list = [];
+  for (let i = a; i <= z; i++) list.push(QARI.base + pad3(s) + pad3(i) + '.mp3');
+  const au = new Audio(); let i = 0;
+  JPLAY = { au, btn:b }; b.setAttribute('aria-pressed', 'true'); b.textContent = 'Berhenti';
+  au.onended = () => { if (JPLAY && JPLAY.au === au && ++i < list.length) { au.src = list[i]; au.play().catch(() => {}); } else if (JPLAY && JPLAY.au === au) stopListen(); };
+  au.onerror = () => { if (JPLAY && JPLAY.au === au) { stopListen(); jtoast('Rekaman belum bisa diputar. Periksa internet.'); } };
+  au.src = list[0]; au.play().catch(() => {});
+});
+addEventListener('hashchange', stopListen);

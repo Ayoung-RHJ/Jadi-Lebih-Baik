@@ -50,7 +50,7 @@ function ayatHTML(k) {
   arabicFont();
   if (!AYAT || !AYAT[k]) return '';
   const a = AYAT[k];
-  return `<div class="jcard"><div class="jar" lang="ar">${a.ar.map(esc).join(' ۝ ')}</div><p class="jtr">${a.id.map(x => esc(x.replace(/\d+\)/g, ''))).join(' ')}</p><span class="jsrc">QS ${esc(a.n)} ${a.s}:${a.a}${a.b > a.a ? '–' + a.b : ''} · Terjemah Kemenag</span></div>`;
+  return `<div class="jcard"><div class="jar" lang="ar">${a.ar.map(esc).join(' ۝ ')}</div><p class="jtr">${a.id.map(x => esc(x.replace(/\d+\)/g, ''))).join(' ')}</p><span class="jsrc">QS ${esc(a.n)} ${a.s}:${a.a}${a.b > a.a ? '–' + a.b : ''} · Terjemah Kemenag</span>${listenBtn(a)}</div>`;
 }
 const stageOf = n => n >= 6 ? 4 : n >= 4 ? 3 : n >= 2 ? 2 : 1;
 function pillarActivity(id, days = 7) {

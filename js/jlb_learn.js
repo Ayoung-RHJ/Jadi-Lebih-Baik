@@ -68,7 +68,7 @@ const GARIS = {
 };
 /* doa lessons: ayat key in jlb_ayat.json, or _hadith key */
 const DOA = { fatihah:['Al-Fatihah', 'fatihah'], ilmu:['Doa minta ilmu', 'ilmu'], ortu:['Doa untuk orang tua', 'ortu'], atina:['Doa kebaikan dunia akhirat', 'atina'],
-  makan:['Doa sebelum makan', 'h:makan,lupa'], tidur:['Doa tidur dan bangun tidur', 'h:tidur,bangun'], wudhu:['Doa setelah wudhu', 'h:'], berbuka:['Doa berbuka puasa', 'h:berbuka'],
+  makan:['Doa sebelum makan', 'h:makan,lupa'], tidur:['Doa tidur dan bangun tidur', 'h:tidur,bangun'], wudhu:['Doa setelah wudhu', 'h:wudhu'], berbuka:['Doa berbuka puasa', 'h:berbuka'],
   ikhlas:['Surat Al-Ikhlas', 'ikhlas'], falaq:['Surat Al-Falaq', 'falaq'], nas:['Surat An-Nas', 'nas'], kautsar:['Surat Al-Kautsar', 'kautsar'], asr:['Surat Al-‘Asr', 'asr'] };
 const L_ = (n, t, d, xp) => ({ n, t, d, xp:xp || 10 });
 const UNITS = [
@@ -131,12 +131,11 @@ function ayahBox(k) {
   if (!AYAT_L) return '<div class="jload"><span></span></div>';
   if (k.startsWith('h:')) {
     const ks = k.slice(2).split(',').filter(Boolean);
-    if (!ks.length) return `<div class="jcard"><p class="jtr">Aku bersaksi tidak ada tuhan selain Allah, dan aku bersaksi Muhammad adalah hamba dan utusan-Nya.</p><span class="jsrc">HR. Muslim · teks Arab menyusul setelah diperiksa</span></div>`;
     arabicFont();
     return ks.map(x => { const h = AYAT_L._hadith[x]; return `<div class="jcard"><div class="jar" lang="ar">${esc(h.ar)}</div><p class="jtr">${esc(h.id)}</p><span class="jsrc">${esc(h.src)}</span></div>`; }).join('');
   }
   const a = AYAT_L[k]; if (!a) return ''; arabicFont();
-  return `<div class="jcard"><div class="jar" lang="ar">${a.ar.map(esc).join(' ۝ ')}</div><p class="jtr">${a.id.map(esc).join(' ')}</p><span class="jsrc">QS ${esc(a.n)} ${a.s}:${a.a}${a.b > a.a ? '–' + a.b : ''} · Terjemah Kemenag</span></div>`;
+  return `<div class="jcard"><div class="jar" lang="ar">${a.ar.map(esc).join(' ۝ ')}</div><p class="jtr">${a.id.map(esc).join(' ')}</p><span class="jsrc">QS ${esc(a.n)} ${a.s}:${a.a}${a.b > a.a ? '–' + a.b : ''} · Terjemah Kemenag</span>${listenBtn(a)}</div>`;
 }
 const qOpts = (q, r, w1, w2) => ({ q, opts:shuffle([r, w1, w2]), r });
 function lessonQs(l) {
