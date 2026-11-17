@@ -111,3 +111,7 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 
 - The ustadz approved all 7 Ibadah missions in Lembar Periksa section 12 (17 Nov 2026). Parent notes for `dzikir_pagi` (Radhitu billahi rabba…, then Al-Ikhlas, Al-Falaq, An-Nas 3×) and `sedekah` (smile is sadaqah, HR. Tirmidzi) follow the ustadz's answers.
 - `IMG` is `jlb-img-v3` (Jimon's JUARA! headband and new scarf replaced pictures under the same names).
+
+## jlb10 (Batas pesan Jimon)
+
+- Parents set Jimon Pintar's daily message limit in Ruang Orang Tua > Jimon: 5, 10, 15, 20 or 30 (default 10). Stored as `limit` in `jlb:ortu`, so it syncs like the other parent settings.
