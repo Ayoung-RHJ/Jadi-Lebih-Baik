@@ -4,13 +4,13 @@
    - pictures and fonts: cache first
    - anything else (Supabase sync, other sites): never touched
    Bump VER on every release. Bump IMG when a picture or sound keeps its name but changes (jlb7: Jimon accessories). */
-const VER = 'jlb10';
+const VER = 'jlb11';
 const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v3';
 const PRE = ['./', 'index.html', 'manifest.webmanifest',
-  'css/app.css?v=jlb10', 'css/jlb.css?v=jlb10',
-  'js/core.js?v=jlb10', 'js/sync.js?v=jlb10', 'js/figures.js?v=jlb10', 'js/data.js?v=jlb10', 'js/engine.js?v=jlb10',
-  'js/calendar.js?v=jlb10', 'js/dalil_data.js?v=jlb10', 'js/journal.js?v=jlb10', 'js/ui.js?v=jlb10', 'js/player.js?v=jlb10',
-  'js/handwrap.js?v=jlb10', 'js/workouts.js?v=jlb10', 'js/jlb_core.js?v=jlb10', 'js/jlb_gerak.js?v=jlb10', 'js/boot.js?v=jlb10',
+  'css/app.css?v=jlb11', 'css/jlb.css?v=jlb11',
+  'js/core.js?v=jlb11', 'js/sync.js?v=jlb11', 'js/figures.js?v=jlb11', 'js/data.js?v=jlb11', 'js/engine.js?v=jlb11',
+  'js/calendar.js?v=jlb11', 'js/dalil_data.js?v=jlb11', 'js/journal.js?v=jlb11', 'js/ui.js?v=jlb11', 'js/player.js?v=jlb11',
+  'js/handwrap.js?v=jlb11', 'js/workouts.js?v=jlb11', 'js/jlb_core.js?v=jlb11', 'js/jlb_gerak.js?v=jlb11', 'js/boot.js?v=jlb11',
   'img/jlb/brand/emblem-96.webp'];
 
 self.addEventListener('install', e => {

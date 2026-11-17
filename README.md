@@ -115,3 +115,9 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 ## jlb10 (Batas pesan Jimon)
 
 - Parents set Jimon Pintar's daily message limit in Ruang Orang Tua > Jimon: 5, 10, 15, 20 or 30 (default 10). Stored as `limit` in `jlb:ortu`, so it syncs like the other parent settings.
+
+## jlb11 (Cek awal anak bersama Jimon)
+
+- Under 13, the check-up switches to the kids' look after "Tentang kamu": Jimon leads every step (`wzKid()` in `js/ui.js`, styles `.wzk-*` in `css/jlb.css`), paw-print progress, recorded clips only.
+- Steps: Untuk Ayah atau Ibu (3 health questions + sore body part), Kamu suka bergerak?, Kapan kita main? (preset Sen/Rab/Jum, 15 or 20 min), Kenalan dengan Jimon (writing hand sets the stance), Siap berpetualang.
+- New kid profiles get push calm, combo calls by name, backup voice Rani and boxing experience none (`kidDef`); parents change them in Settings. Teens and adults are unchanged.
