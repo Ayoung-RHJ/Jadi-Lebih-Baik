@@ -203,14 +203,15 @@ function renderOrtu() {
       ${jbtn('Simpan jawaban', 'data-oajar', 'navy block')}
       ${(O.ajar || []).map((x, i) => `<div class="jrow sp"><span><b>${esc(x.q)}</b><br><span class="jmut">${esc(x.a)}</span></span>${jbtn('Hapus', 'data-oajdel="' + i + '"', 'ghost')}</div>`).join('') || '<span class="jmut">Belum ada.</span>'}</section>
     <section class="jcard"><h2>Jimon</h2><label class="jrow sp"><span>Boleh ngobrol dengan Jimon</span><input type="checkbox" data-ochat ${O.chat ? 'checked' : ''} style="width:24px;height:24px"></label>
-      <span class="jmut">Jimon Pintar bekerja tanpa internet dan hanya menjawab dari isi yang sudah diperiksa ustadz. Batas ${O.limit} pesan per hari. Mengelus Jimon tidak memberi XP.</span>
+      <b>Batas pesan per hari</b><div class="jtick">${[5, 10, 15, 20, 30].map(n => `<button class="jchip" data-olim="${n}" aria-pressed="${O.limit === n}">${n} pesan</button>`).join('')}</div>
+      <span class="jmut">Jimon Pintar bekerja tanpa internet dan gratis, jadi batas ini hanya untuk mengatur waktu layar. Sekarang ${O.limit} pesan per hari; perubahan langsung berlaku hari ini. Mengelus Jimon tidak memberi XP.</span>
       <b>Obrolan terakhir</b>${chat.length ? chat.map(c => `<p class="jmut">${c.me ? 'Anak' : 'Jimon'}: ${esc(c.t)}</p>`).join('') : '<p class="jmut">Belum ada obrolan.</p>'}</section></div>`;
 }
 const setOrtu = patch => { const O = Object.assign({}, pget(CUR, 'jlb:ortu', {}) || {}, patch); jset('ortu', O); };
 
 /* ---------------- events ---------------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-klan],[data-kmis],[data-kpet],[data-kbath],[data-kwear],[data-kpop],[data-kpeti],[data-oopen],[data-olock],[data-oreq],[data-ocap],[data-omode],[data-oisl],[data-oajar],[data-oajdel],[data-oownt],[data-oownadd],[data-oowndel]');
+  const t = e.target.closest('[data-klan],[data-kmis],[data-kpet],[data-kbath],[data-kwear],[data-kpop],[data-kpeti],[data-oopen],[data-olock],[data-oreq],[data-ocap],[data-olim],[data-omode],[data-oisl],[data-oajar],[data-oajdel],[data-oownt],[data-oownadd],[data-oowndel]');
   if (!t || t.disabled) return;
   const ds = t.dataset, tk = todayK();
   if (ds.klan) { dayPut(tk, d => { d.s = d.s || {}; const s = Object.assign({}, d.s[ds.klan] || {}); s.f = s.f ? 0 : 1; d.s[ds.klan] = s; });
@@ -233,6 +234,7 @@ document.addEventListener('click', async e => {
   if (ds.olock !== undefined) { OUNLOCK = false; return renderOrtu(); }
   if (ds.oreq) { const [k, st] = ds.oreq.split(':'), R = jget('peti', {}); if (R[k]) { R[k] = Object.assign({}, R[k], { st, at:Date.now() }); jset('peti', R); } return renderOrtu(); }
   if (ds.ocap) { setOrtu({ cap:Number(ds.ocap) }); return renderOrtu(); }
+  if (ds.olim) { setOrtu({ limit:Number(ds.olim) }); return renderOrtu(); }
   if (ds.oisl && OUNLOCK) { const [n, st] = ds.oisl.split(':'), I = Object.assign({}, ortu().isl || {}); if (st === 'auto') delete I[n]; else I[n] = { st, d:todayK() }; setOrtu({ isl:I }); return renderOrtu(); }
   if (ds.oajar !== undefined && OUNLOCK) { const q = ($('#oAjQ').value || '').trim(), a = ($('#oAjA').value || '').trim(); if (!q || !a) { jtoast('Isi kedua kolom dulu ya.'); return; }
     setOrtu({ ajar:[{ q, a }].concat(ortu().ajar || []).slice(0, 40) }); jtoast('Jimon sudah belajar jawaban baru'); return renderOrtu(); }
