@@ -5,7 +5,7 @@
    - anything else (Supabase sync, other sites): never touched
    Bump VER on every release. Bump IMG when a picture or sound keeps its name but changes (jlb7: Jimon accessories). */
 const VER = 'jlb8';
-const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v2';
+const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v3';
 const PRE = ['./', 'index.html', 'manifest.webmanifest',
   'css/app.css?v=jlb8', 'css/jlb.css?v=jlb8',
   'js/core.js?v=jlb8', 'js/sync.js?v=jlb8', 'js/figures.js?v=jlb8', 'js/data.js?v=jlb8', 'js/engine.js?v=jlb8',
