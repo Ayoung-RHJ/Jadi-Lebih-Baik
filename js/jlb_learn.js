@@ -1,5 +1,5 @@
 /* =========================================================
-   Belajar Seru: 10 units x 6 lessons, all content approved by the ustadz.
+   Belajar Seru, Musim Baru: 5 islands, 10 units, steps of 5 questions, unit and island exams, Kisah Pilihan.
    Lesson types: kisah, kuis, susun, doa, puzzle, garis, ujian. Plus Roda Ilmu.
    ========================================================= */
 /* quiz bank: code: [question, right answer, wrong 1, wrong 2, reference, Roda category] */
@@ -83,50 +83,133 @@ const UNITS = [
   ['Surat pendek', '#0E7C66', [L_('Al-Ikhlas', 'doa', 'ikhlas'), L_('Al-Falaq', 'doa', 'falaq'), L_('An-Nas', 'doa', 'nas'), L_('Al-Kautsar', 'doa', 'kautsar'), L_('Al-‘Asr', 'doa', 'asr')]],
   ['Ramadan', '#4B2C8F', [L_('Kenapa puasa', 'kuis', ['U10-1']), L_('Al-Qur’an turun', 'kisah', 'quran'), L_('Lailatul Qadar', 'kisah', 'lailah'), L_('Sahur dan berbuka', 'kuis', ['U10-4', 'U10-5']), L_('Doa berbuka', 'doa', 'berbuka')]]
 ];
-UNITS.forEach((u, i) => u[2].push(L_('Ujian unit', 'ujian', Object.keys(QB).filter(k => k.startsWith('U' + (i + 1) + '-')))));
-const LESSONS = []; UNITS.forEach((u, ui) => u[2].forEach((l, li) => LESSONS.push(Object.assign({ id:'u' + (ui + 1) + '-' + (li + 1), u:ui }, l))));
+
+/* ---------------- Musim Baru: islands, steps, exams ----------------
+   5 islands, 2 units each. A unit = 5 steps (5 questions each) + a unit exam (20 questions).
+   An island ends with a boss exam (30 questions). Mumtaz (90%+) on every exam opens the way on;
+   the next island opens 7 days after the last one at the earliest (parents can open or lock it).
+   Progress lives in jlb:learn2 (per-entry merge on sync). XP: step +5 (replay +5 once a day),
+   unit exam Mumtaz +10 (+5 perfect), island exam Mumtaz +30 (+10 perfect). Old jlb:learn XP is kept. */
+const LESSONS = []; UNITS.forEach((u, ui) => u[2].forEach((l, li) => LESSONS.push(Object.assign({ id:'u' + (ui + 1) + '-' + (li + 1), u:ui, step:li + 1 }, l, { xp:5 }))));
 const lessonById = id => LESSONS.find(l => l.id === id);
-const learnDone = () => jget('learn', {});
-const curLesson = () => { const D = learnDone(); return LESSONS.find(l => !(D[l.id] && D[l.id].done)) || null; };
-const LICON = { kisah:'baca', kuis:'ilmu', susun:'roda', doa:'doa_bangun', puzzle:'jalan', garis:'kajian', ujian:'sholat' };
+const ISL = [['Pulau Rukun', '#0E7C66'], ['Pulau Sholat dan Nabi', '#A85705'], ['Pulau Sirah dan Akhlak', '#6B3FC4'], ['Pulau Doa dan Iman', '#2450D6'], ['Pulau Qur’an dan Ramadan', '#4B2C8F']];
+const LICON = { kisah:'baca', kuis:'ilmu', susun:'roda', doa:'doa_bangun', puzzle:'jalan', garis:'kajian', ujian:'sholat', boss:'kajian' };
 const STONE_X = [50, 28, 66, 36, 70, 44, 64, 30, 62, 34, 68, 42];
 const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(p => p[1]);
+const GRADE = p => p >= 90 ? 'Mumtaz' : p >= 80 ? 'Jayyid Jiddan' : p >= 70 ? 'Jayyid' : 'Belum lulus';
+const L2 = () => jget('learn2', {}) || {};
+function l2put(k, fn) { const all = L2(), e = Object.assign({}, all[k] || {}); fn(e); e.at = Date.now(); all[k] = e; jset('learn2', all); if (typeof checkLevelUp === 'function') checkLevelUp(); }
+const learnDone = () => { const A = L2(), o = {}; Object.keys(A).forEach(k => { if (k.startsWith('s:') && A[k].done) o[k.slice(2)] = A[k]; }); return o; };
+const stepDone = id => !!(L2()['s:' + id] || {}).done;
+const examMum = u => !!(L2()['e:u' + (u + 1)] || {}).mum;
+const bossMum = i => !!(L2()['b:' + (i + 1)] || {}).mum;
+const triedToday = k => !!((L2()[k] || {}).tries || {})[todayK()];
+/* when island i (0-based) opens: day key, or null while its earlier island is unfinished */
+function islandOpenDay(i) {
+  const A = L2(), over = ((pget(CUR, 'jlb:ortu', {}) || {}).isl || {})[i + 1];
+  if (i === 0) return (A['i:1'] || {}).d || todayK();
+  const prev = islandOpenDay(i - 1);
+  if (over && over.st === 'open') return over.d;
+  if (!prev || !bossMum(i - 1)) return null;
+  const boss = A['b:' + i] || {}, w = dkey(jAdd(kOf(prev), 7));
+  return [w, boss.md || todayK()].sort()[1];
+}
+function islandState(i) {
+  const over = ((pget(CUR, 'jlb:ortu', {}) || {}).isl || {})[i + 1];
+  if (over && over.st === 'lock') return { open:false, why:'Dikunci Ayah atau Ibu' };
+  const d = islandOpenDay(i);
+  if (!d) return { open:false, why:i ? 'Selesaikan ujian ' + ISL[i - 1][0] + ' dengan nilai Mumtaz' : '' };
+  if (d > todayK()) return { open:false, day:d, why:'Buka ' + niceDate(kOf(d)) };
+  return { open:true, day:d };
+}
+/* the path, in order: steps and exams for each unit, then the island exam */
+function pathItems() {
+  const out = [];
+  ISL.forEach((isl, i) => {
+    [i * 2, i * 2 + 1].forEach(u => {
+      LESSONS.filter(l => l.u === u).forEach(l => out.push({ kind:'step', id:l.id, u, isl:i, n:l.n, t:l.t, l }));
+      out.push({ kind:'exam', id:'e' + (u + 1), u, isl:i, n:'Ujian ' + UNITS[u][0], t:'ujian' });
+    });
+    out.push({ kind:'boss', id:'b' + (i + 1), isl:i, n:'Ujian ' + isl[0], t:'boss' });
+  });
+  return out;
+}
+const itemDone = it => it.kind === 'step' ? stepDone(it.id) : it.kind === 'exam' ? examMum(it.u) : bossMum(it.isl);
+function curItem() { return pathItems().find(it => !itemDone(it)) || null; }
+/* can the child open this item now? */
+function itemOpen(it) {
+  if (itemDone(it)) return true;
+  const c = curItem(); if (!c || c.id !== it.id) return false;
+  return islandState(it.isl).open;
+}
+const itemById = id => pathItems().find(it => it.id === id);
+
+/* ---------------- questions ---------------- */
+const PA_N = { ilmu:'doa minta ilmu (QS 20:114)', ortu:'doa untuk orang tua (QS 17:24)', atina:'doa kebaikan dunia akhirat (QS 2:201)' };
+function buildQ(c) {
+  const o = QB[c] || QB2[c]; if (!o) return null;
+  if (Array.isArray(o)) {
+    if (o[5] === 'bs') return { c, q:'Benar atau salah? ' + o[0], opts:['Benar', 'Salah'], r:o[1], ref:o[4] };
+    return Object.assign(qOpts(o[0], o[1], o[2], o[3]), { c, ref:o[4] });
+  }
+  if (!AYAT_L) return { c, wait:true };
+  if (o.sa) { const A = AYAT_L[o.sa], i = o.a - A.a, right = A.ar[i + 1];
+    const pool = A.ar.filter((x, j) => j !== i && j !== i + 1); const others = shuffle(pool.length >= 2 ? pool : pool.concat(AYAT_L.ikhlas.ar, AYAT_L.nas.ar).filter(x => x !== right && x !== A.ar[i])).slice(0, 2);
+    return { c, q:'Sambung ayatnya. Setelah ayat ini, bacaannya adalah…', ar:A.ar[i], opts:shuffle([right].concat(others)), r:right, ref:'QS ' + A.n + ' ' + A.s + ':' + (o.a + 1), arab:true }; }
+  if (o.pa) { const keys = ['ilmu', 'ortu', 'atina'], txt = k => AYAT_L[k].ar.join(' ');
+    return { c, q:'Pilih teks Arab ' + PA_N[o.pa] + '.', opts:shuffle(keys.map(txt)), r:txt(o.pa), ref:o.ref, arab:true }; }
+  return null;
+}
+const unitPool = u => { const ids = LESSONS.filter(l => l.u === u).map(l => l.id); return ids.flatMap(id => STEPQ[id]).concat(CADQ['u' + (u + 1)] || []); };
+function itemQs(it) {
+  if (it.kind === 'step') return shuffle(STEPQ[it.id]).map(buildQ).filter(Boolean);
+  if (it.kind === 'exam') return shuffle(unitPool(it.u)).slice(0, 20).map(buildQ).filter(Boolean);
+  return shuffle(unitPool(it.isl * 2).concat(unitPool(it.isl * 2 + 1))).slice(0, 30).map(buildQ).filter(Boolean);
+}
 
 /* ---------------- map ---------------- */
+let LS = null, AYAT_L = null;
 function renderBelajar() {
   if (!AYAT_L) loadAyatL();
+  if (!L2()['i:1']) l2put('i:1', e => { e.d = todayK(); });
   const a = ROUTE_ARG;
   if (a === 'roda') return renderRoda();
-  if (a && lessonById(a)) return renderLesson(lessonById(a));
+  if (a === 'kp') return renderKPList();
+  if (a && a.startsWith('kp-')) return renderKP(a.slice(3));
+  if (a && itemById(a)) return renderItem(itemById(a));
   LS = null;
-  const D = learnDone(), cur = curLesson(), segs = [5, 4, 3, 2, 1];
-  /* each picture holds 2 units (12 stones), unit 1 at the bottom */
-  const segH = 1200 / 670 * 100;   // % of width
-  let stones = '', units = '';
-  LESSONS.forEach((l, i) => {
-    const seg = Math.floor(l.u / 2), inSeg = (l.u % 2) * 6 + Number(l.id.split('-')[1]) - 1;
-    const segTop = (4 - seg) * (segH - 8);   // pictures overlap 8% at the clouds
-    const y = segTop + segH * (0.9 - inSeg * 0.068), x = STONE_X[inSeg];
-    const done = D[l.id] && D[l.id].done, now = cur && cur.id === l.id, lock = !done && !now, sz = now ? 78 : 64;
-    stones += `<a class="jstone ${now ? 'now' : lock ? 'lock' : ''}" ${lock ? 'aria-disabled="true"' : `href="#belajar/${l.id}"`} style="left:${x}%;top:calc(${y} * 1vw * var(--mw))" id="${now ? 'stoneNow' : ''}" aria-label="${esc(l.n)}, ${done ? 'selesai' : now ? 'sekarang' : 'terkunci'}">
-      <i style="width:min(${sz}px,${(sz / 3.9).toFixed(1)}vw);height:min(${sz}px,${(sz / 3.9).toFixed(1)}vw);background:${done ? '#0E7C66' : now ? '#F2B705' : '#DCE1EC'}"><img src="${jimg('ikon/' + LICON[l.t] + '.webp')}" alt="" loading="lazy"></i><b>${esc(l.n)}</b></a>`;
-    if (inSeg % 6 === 0) units += `<span class="junit" style="top:calc(${y + 3} * 1vw * var(--mw));background:${UNITS[l.u][1]}">Unit ${l.u + 1} · ${UNITS[l.u][0]}</span>`;
+  const P = pathItems(), cur = curItem(), segs = [5, 4, 3, 2, 1], segH = 1200 / 670 * 100;
+  let stones = '', marks = '';
+  P.forEach(it => {
+    const isl = it.isl, inSeg = it.kind === 'boss' ? 12 : (it.u % 2) * 6 + (it.kind === 'exam' ? 5 : it.l.step - 1);
+    const segTop = (4 - isl) * (segH - 8), y = segTop + segH * (it.kind === 'boss' ? 0.1 : 0.92 - inSeg * 0.062), x = it.kind === 'boss' ? 50 : STONE_X[inSeg];
+    const done = itemDone(it), now = cur && cur.id === it.id, st = islandState(isl), open = now && st.open, lock = !done && !open;
+    const sz = it.kind === 'boss' ? 84 : now ? 78 : 64, bg = done ? (it.kind === 'step' ? '#0E7C66' : '#F2B705') : open ? '#F2B705' : '#DCE1EC';
+    const badge = done && it.kind !== 'step' ? '<em class="jmum">Mumtaz</em>' : done ? '<em class="jok" aria-hidden="true">✓</em>' : '';
+    stones += `<a class="jstone ${it.kind} ${open ? 'now' : lock ? 'lock' : ''}" ${lock ? `data-lwhy="${isl}" href="#belajar"` : `href="#belajar/${it.id}"`} style="left:${x}%;top:calc(${y} * 1vw * var(--mw))" ${open ? 'id="stoneNow"' : ''} aria-label="${esc(it.n)}, ${done ? 'selesai' : open ? 'sekarang' : 'terkunci'}">
+      <i style="width:min(${sz}px,${(sz / 3.9).toFixed(1)}vw);height:min(${sz}px,${(sz / 3.9).toFixed(1)}vw);background:${bg}"><img src="${jimg(it.kind === 'boss' ? 'anak/star_jar.webp' : 'ikon/' + LICON[it.t] + '.webp')}" alt="" loading="lazy">${badge}</i><b>${esc(it.n)}</b></a>`;
+    if (it.kind === 'step' && it.l.step === 1) marks += `<span class="junit" style="top:calc(${y + 3} * 1vw * var(--mw));background:${UNITS[it.u][1]}">Unit ${it.u + 1} · ${UNITS[it.u][0]}</span>`;
+    if (it.kind === 'boss') { const done5 = bossMum(isl);
+      marks += `<span class="jisl ${done5 ? 'gold' : ''}" style="top:calc(${segTop + 4} * 1vw * var(--mw));background:${ISL[isl][1]}">${done5 ? '★ ' : ''}Pulau ${isl + 1} · ${ISL[isl][0].replace('Pulau ', '')}</span>`;
+      if (!st.open) marks += `<div class="jlockisl" style="top:calc(${segTop + segH * .42} * 1vw * var(--mw))"><b>Pulau ${isl + 1} terkunci</b><span>${esc(st.why)}</span></div>`; }
   });
-  const total = LESSONS.length, n = Object.values(D).filter(x => x && x.done).length, today = todayK(), roda = (jget('roda', {}) || {})[today];
-  $('#v-belajar').innerHTML = `<div class="jw jkidw"><div class="jrow sp" style="padding-top:8px"><h1>Belajar Seru</h1><span class="jpill">${n} dari ${total}</span></div>
-    ${cur ? `<a class="jb gold block" href="#belajar/${cur.id}">Lanjut: ${esc(cur.n)}</a>` : '<p class="note ok">MasyaAllah, semua pelajaran selesai!</p>'}
-    <a class="jcard" href="#belajar/roda" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center;background:var(--jkidcard)">${jicon('roda')}<span><b>Roda Ilmu</b><br><span class="jmut">${roda ? 'Sudah diputar hari ini' : '1 putaran hari ini'}</span></span></a>
-    <section class="jmap" style="--mw:1">${segs.map(s => `<img class="seg" src="${jimg('belajar/peta_' + s + '.webp')}" alt="" loading="${s < 3 ? 'eager' : 'lazy'}" decoding="async" width="670" height="1200">`).join('')}${stones}${units}</section></div>`;
+  const done = P.filter(itemDone).length, today = todayK(), roda = (jget('roda', {}) || {})[today], A = L2(), kpDone = KISAHP.filter(k => (A['k:' + k.id] || {}).done).length;
+  const curOpen = cur && islandState(cur.isl).open;
+  $('#v-belajar').innerHTML = `<div class="jw jkidw"><div class="jrow sp" style="padding-top:8px"><h1>Belajar Seru</h1><span class="jrow" style="gap:6px"><span class="jpill">${done} dari ${P.length}</span>${jsoundBtn()}</span></div>
+    <p class="jmut" style="margin:-6px 0 0">Musim baru: 5 pulau, setiap langkah 5 soal, ujian unit dan ujian pulau. Nilai Mumtaz membuka jalan berikutnya.</p>
+    ${!cur ? '<p class="note ok">MasyaAllah, semua pulau selesai!</p>' : curOpen ? `<a class="jb gold block" href="#belajar/${cur.id}">Lanjut: ${esc(cur.n)}</a>` : `<p class="note">${esc(islandState(cur.isl).why)}. Sambil menunggu, ulangi pelajaran yang sudah selesai (+5 XP sekali sehari) atau baca Kisah Pilihan.</p>`}
+    <div class="jgrid2">
+    <a class="jcard" href="#belajar/kp" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('berbuat_baik', '', 'baca')}<b>Kisah Pilihan</b><span class="jmut">${kpDone} dari ${KISAHP.length} kisah</span></a>
+    <a class="jcard" href="#belajar/roda" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('roda')}<b>Roda Ilmu</b><span class="jmut">${roda ? 'Sudah diputar hari ini' : '1 putaran hari ini'}</span></a></div>
+    <section class="jmap" style="--mw:1">${segs.map(s => `<img class="seg" src="${jimg('belajar/peta_' + s + '.webp')}" alt="" loading="${s < 3 ? 'eager' : 'lazy'}" decoding="async" width="670" height="1200">`).join('')}${stones}${marks}</section></div>`;
   fixMapScale();
-  const st = $('#stoneNow'); if (st) setTimeout(() => st.scrollIntoView({ block:'center', behavior:'instant' in window ? 'instant' : 'auto' }), 60);
+  const sn = $('#stoneNow'); if (sn) setTimeout(() => sn.scrollIntoView({ block:'center', behavior:'instant' in window ? 'instant' : 'auto' }), 60);
 }
-/* stone positions are in "percent of map width"; convert to px of the real map width */
 function fixMapScale() { const m = $('.jmap'); if (!m) return; m.style.setProperty('--mw', m.clientWidth / innerWidth); }
 addEventListener('resize', () => { if (document.body.dataset.view === 'belajar') fixMapScale(); });
 
-/* ---------------- lessons ---------------- */
-let LS = null, AYAT_L = null;
-function loadAyatL() { return fetch('js/jlb_ayat.json?v=' + JLB_VER).then(r => r.json()).then(j => { AYAT_L = j; if (document.body.dataset.view === 'belajar' && LS) renderLesson(lessonById(LS.id)); }); }
+/* ---------------- a step or an exam ---------------- */
+function loadAyatL() { return fetch('js/jlb_ayat.json?v=' + JLB_VER).then(r => r.json()).then(j => { AYAT_L = j; if (document.body.dataset.view === 'belajar' && LS) { LS.qs = LS.qs.map(q => q && q.wait ? buildQ(q.c) : q); renderItem(itemById(LS.id)); } }); }
 function ayahBox(k) {
   if (!AYAT_L) return '<div class="jload"><span></span></div>';
   if (k.startsWith('h:')) {
@@ -138,42 +221,52 @@ function ayahBox(k) {
   return `<div class="jcard"><div class="jar" lang="ar">${a.ar.map(esc).join(' ۝ ')}</div><p class="jtr">${a.id.map(esc).join(' ')}</p><span class="jsrc">QS ${esc(a.n)} ${a.s}:${a.a}${a.b > a.a ? '–' + a.b : ''} · Terjemah Kemenag</span>${listenBtn(a)}</div>`;
 }
 const qOpts = (q, r, w1, w2) => ({ q, opts:shuffle([r, w1, w2]), r });
-function lessonQs(l) {
-  if (l.t === 'kuis' || l.t === 'ujian') return shuffle(l.d).slice(0, 5).map(c => Object.assign(qOpts(QB[c][0], QB[c][1], QB[c][2], QB[c][3]), { ref:QB[c][4] }));
-  if (l.t === 'kisah') return l.d.split(',').map(k => Object.assign(qOpts(...KS[k][5]), { ref:KS[k][3] }));
-  return [];
-}
-function renderLesson(l) {
-  if (!LS || LS.id !== l.id) {
-    const D = learnDone(), cur = curLesson();
-    if (!(D[l.id] && D[l.id].done) && !(cur && cur.id === l.id)) { location.hash = '#belajar'; return; }
-    LS = { id:l.id, step:0, qs:lessonQs(l), qi:0, pick:null, order:[], placed:[], put:{}, checked:false, page:0 };
-    if (l.t === 'susun') { const S = SUSUN[l.d === 'S3' && Number(PROF.age) < 9 ? 'S3k' : l.d]; LS.items = S[1].map((t, i) => ({ t, i })); LS.cards = shuffle(LS.items.slice()); LS.src = S; }
-    if (l.t === 'garis') { LS.items = GARIS[l.d].map((x, i) => ({ t:x[0], img:x[1], yr:x[2], i })); LS.cards = shuffle(LS.items.slice()); }
+function renderItem(it) {
+  if (!it) { location.hash = '#belajar'; return; }
+  if (!LS || LS.id !== it.id) {
+    if (!itemOpen(it)) { location.hash = '#belajar'; return; }
+    if (it.kind !== 'step' && triedToday(it.kind === 'exam' ? 'e:u' + (it.u + 1) : 'b:' + (it.isl + 1))) { LS = { id:it.id, blocked:true }; return paintItem(it); }
+    const l = it.l, intro = it.kind === 'step' && l.t !== 'kuis';
+    LS = { id:it.id, phase:intro ? 'intro' : 'q', qs:itemQs(it), qi:0, pick:null, ok:0, asked:0, wrongs:0, page:0, placed:[], put:{}, checked:false, replay:itemDone(it) };
+    if (it.kind === 'step' && l.t === 'susun') { const S = SUSUN[l.d === 'S3' && Number(PROF.age) < 9 ? 'S3k' : l.d]; LS.items = S[1].map((t, i) => ({ t, i })); LS.cards = shuffle(LS.items.slice()); LS.src = S; }
+    if (it.kind === 'step' && l.t === 'garis') { LS.items = GARIS[l.d].map((x, i) => ({ t:x[0], img:x[1], yr:x[2], i })); LS.cards = shuffle(LS.items.slice()); }
+    if (it.kind !== 'step') jvoice('b_ujian');
   }
-  const U = UNITS[l.u], head = `<div class="jrow" style="padding-top:8px">${back('#belajar', 'Tutup')}<div class="jbar" style="flex:1"><i style="width:${lessonPct(l)}%"></i></div><span class="jpill">${xpTotal()} XP</span></div>
-    <span class="jmut" style="font-weight:800;color:${U[1]};text-transform:uppercase;letter-spacing:.06em">Unit ${l.u + 1} · ${esc(U[0])}</span><h1>${esc(l.n)}</h1>`;
+  paintItem(it);
+}
+function paintItem(it) {
+  const exam = it.kind !== 'step', l = it.l, color = it.kind === 'boss' ? ISL[it.isl][1] : UNITS[it.u][1];
+  const total = LS.qs ? LS.qs.length : 0, pct = LS.phase === 'done' ? 100 : LS.phase === 'intro' ? 8 : Math.round(LS.qi / Math.max(1, total) * 100);
+  const head = `<div class="jrow" style="padding-top:8px">${back('#belajar', 'Tutup')}<div class="jbar" style="flex:1"><i style="width:${LS.blocked ? 0 : pct}%"></i></div>${jsoundBtn()}</div>
+    <span class="jmut" style="font-weight:800;color:${color};text-transform:uppercase;letter-spacing:.06em">${it.kind === 'boss' ? 'Ujian pulau · ' + ISL[it.isl][0] : 'Unit ' + (it.u + 1) + ' · ' + esc(UNITS[it.u][0])}${LS.replay && !exam ? ' · ulangan' : ''}</span><h1>${esc(it.n)}</h1>`;
   let body = '';
-  if (LS.step === 'done') body = finishHTML(l);
-  else if (l.t === 'kisah' && LS.step === 0) { const k = l.d.split(',')[LS.page], K = KS[k];
-    body = `<div style="border-radius:20px;overflow:hidden;height:300px"><img src="${jimg('belajar/' + K[0] + '.webp')}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 60%"></div>
-      <p style="font-size:1.12rem;line-height:1.6">${esc(K[1])}</p><div class="jcard" style="background:var(--jsoft)"><b>Pelajaran</b><span>${esc(K[2])}</span><span class="jsrc">${esc(K[3])}</span></div>
-      <div class="jrow">${jbtn('Dengarkan', 'data-lsay', 'ghost')}${jbtn('Lihat ayat', 'data-lay', 'ghost')}</div>${LS.ay ? ayahBox(K[4]) : ''}
-      <div class="jrow"><img src="${jimonFace('dengar')}" alt="" width="80" height="87"><span class="jmsg">Siap untuk satu pertanyaan?</span></div>${jbtn('Lanjut', 'data-lnext', 'green block')}`; }
-  else if (l.t === 'kisah' || l.t === 'kuis' || l.t === 'ujian') body = quizHTML();
-  else if (l.t === 'susun') body = susunHTML(false);
-  else if (l.t === 'garis') body = susunHTML(true);
-  else if (l.t === 'doa') { const D = DOA[l.d]; body = `${ayahBox(D[1])}<div class="jrow"><img src="${jimonFace('senang')}" alt="" width="80" height="87"><span class="jmsg">Baca pelan-pelan bersama Ayah atau Ibu ya.</span></div>${jbtn('Aku sudah membaca', 'data-ldone', 'green block')}`; }
-  else if (l.t === 'puzzle') body = puzzleHTML();
+  if (LS.blocked) body = `<div class="jcard" style="align-items:center;text-align:center"><img src="${jimg('jimon/suasana/berpikir.webp')}" alt="" width="150" style="width:150px;height:auto"><h2>Ujian ini sudah dicoba hari ini</h2><span class="jmut">Setiap ujian boleh dicoba sekali sehari. Besok kita coba lagi ya, sambil mengulang langkah-langkahnya.</span></div><a class="jb ghost block" href="#belajar">Kembali ke peta</a>`;
+  else if (LS.phase === 'done') body = exam ? examResultHTML(it) : stepDoneHTML(it);
+  else if (LS.phase === 'intro') body = introHTML(it);
+  else body = quizHTML(exam);
   $('#v-belajar').innerHTML = `<div class="jw jkidw">${head}${body}</div>`;
 }
-function lessonPct(l) { if (LS.step === 'done') return 100; if (LS.qs.length) return Math.round((LS.qi + (l.t === 'kisah' && LS.step === 0 ? 0 : 1)) / (LS.qs.length + 1) * 100); return 50; }
-function quizHTML() {
+function introHTML(it) {
+  const l = it.l;
+  if (l.t === 'kisah') { const k = l.d.split(',')[LS.page], K = KS[k];
+    return `<div style="border-radius:20px;overflow:hidden;height:300px"><img src="${jimg('belajar/' + K[0] + '.webp')}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 60%"></div>
+      <p style="font-size:1.12rem;line-height:1.6">${esc(K[1])}</p><div class="jcard" style="background:var(--jsoft)"><b>Pelajaran</b><span>${esc(K[2])}</span><span class="jsrc">${esc(K[3])}</span></div>
+      <div class="jrow">${jbtn('Dengarkan', 'data-lsay', 'ghost')}${jbtn('Lihat ayat', 'data-lay', 'ghost')}</div>${LS.ay ? ayahBox(K[4]) : ''}
+      <div class="jrow"><img src="${jimonFace('dengar')}" alt="" width="80" height="87"><span class="jmsg">Siap untuk 5 pertanyaan?</span></div>${jbtn('Lanjut', 'data-lnext', 'green block')}`; }
+  if (l.t === 'doa') { const D = DOA[l.d]; return `${ayahBox(D[1])}<div class="jrow"><img src="${jimonFace('senang')}" alt="" width="80" height="87"><span class="jmsg">Baca pelan-pelan bersama Ayah atau Ibu, lalu jawab 5 pertanyaan.</span></div>${jbtn('Aku sudah membaca', 'data-lnext', 'green block')}`; }
+  if (l.t === 'susun') return susunHTML(false);
+  if (l.t === 'garis') return susunHTML(true);
+  if (l.t === 'puzzle') return puzzleHTML();
+  return '';
+}
+function quizHTML(exam) {
   const q = LS.qs[LS.qi]; if (!q) return '';
-  const fb = LS.pick === null ? null : LS.pick === q.r;
-  return `<div class="jcard"><span class="jmut">Soal ${LS.qi + 1} dari ${LS.qs.length}</span><h2 style="font-size:1.3rem">${esc(q.q)}</h2></div>
-    <div class="jopt">${q.opts.map(o => `<button data-lopt="${esc(o)}" class="${LS.pick === o ? (fb ? 'ok' : 'no') : ''}" ${fb ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>
-    ${fb === null ? '' : `<div class="jrow"><img src="${jimonFace(fb ? 'tertawa' : 'peduli')}" alt="" width="80" height="87"><span class="jmsg">${fb ? 'MasyaAllah, benar!' : 'Hampir! Coba lagi ya.'} <small class="jsrc">${esc(q.ref || '')}</small></span></div>${fb ? jbtn('Lanjut', 'data-lqn', 'green block') : ''}`}`;
+  if (q.wait) return '<div class="jload" aria-busy="true"><span></span></div>';
+  const ans = LS.pick !== null, fb = ans && LS.pick === q.r;
+  if (q.arab) arabicFont();
+  return `<div class="jcard"><span class="jmut">Soal ${LS.qi + 1} dari ${LS.qs.length}${exam ? ' · benar ' + LS.ok : ''}</span><h2 style="font-size:1.3rem">${esc(q.q)}</h2>${q.ar ? `<div class="jar" lang="ar">${esc(q.ar)}</div>` : ''}</div>
+    <div class="jopt ${q.arab ? 'arab' : ''}">${q.opts.map(o => `<button data-lopt="${esc(o)}" ${q.arab ? 'lang="ar"' : ''} class="${ans && o === q.r ? 'ok' : ans && LS.pick === o ? 'no' : ''}" ${ans ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>
+    ${!ans ? '' : `<div class="jrow"><img src="${jimonFace(fb ? 'tertawa' : 'peduli')}" alt="" width="80" height="87"><span class="jmsg">${fb ? jpick(['MasyaAllah, benar!', 'Tepat sekali!', 'Hebat, kamu ingat!']) : exam ? 'Belum tepat. Jawaban yang benar sudah ditandai hijau.' : 'Hampir! Jawaban yang benar ditandai hijau. Soal ini muncul lagi nanti ya.'} <small class="jsrc">${esc(q.ref || '')}</small></span></div>${jbtn('Lanjut', 'data-lqn', 'green block')}`}`;
 }
 function susunHTML(garis) {
   const n = LS.items.length, ok = LS.checked && LS.placed.every((x, i) => x.i === i);
@@ -181,8 +274,8 @@ function susunHTML(garis) {
     <div style="display:flex;flex-direction:column;gap:8px">${Array.from({ length:n }, (_, i) => { const x = LS.placed[i]; const wrong = LS.checked && x && x.i !== i;
       return `<div class="jslot ${x ? 'f' : ''}" style="${wrong ? 'border-color:var(--jy);background:#FFF4D6' : LS.checked && x ? 'border-color:var(--jg)' : ''}"><b>${i + 1}</b>${x ? `${garis ? `<img src="${jimg('belajar/' + x.img + '.webp')}" alt="" width="46" height="46" style="border-radius:10px;object-fit:cover">` : ''}<span style="flex:1">${esc(x.t)}</span>${garis && ok && x.yr ? `<span class="jpill" style="background:var(--jg);color:#fff">${esc(x.yr)}</span>` : ''}` : '<span class="jmut">…</span>'}</div>`; }).join('')}</div>
     <div class="jcards">${LS.cards.map((c, j) => `<button data-lcard="${j}" ${LS.placed.includes(c) ? 'disabled' : ''}>${esc(c.t)}</button>`).join('')}</div>
-    ${LS.checked ? `<div class="jrow"><img src="${jimonFace(ok ? 'tertawa' : 'peduli')}" alt="" width="80" height="87"><span class="jmsg">${ok ? 'Hebat, urutannya benar!' : 'Yang kuning belum pas. Tekan Ulang dan coba lagi.'}</span></div>` : ''}
-    <div class="jrow">${jbtn('Ulang', 'data-lreset', 'ghost')}${ok ? jbtn('Selesai', 'data-ldone', 'green') : jbtn('Periksa', 'data-lcheck ' + (LS.placed.length < n ? 'disabled' : ''), 'green')}</div>${LS.src ? `<span class="jsrc">${esc(LS.src[2])}</span>` : ''}`;
+    ${LS.checked ? `<div class="jrow"><img src="${jimonFace(ok ? 'tertawa' : 'peduli')}" alt="" width="80" height="87"><span class="jmsg">${ok ? 'Hebat, urutannya benar! Sekarang 5 pertanyaan.' : 'Yang kuning belum pas. Tekan Ulang dan coba lagi.'}</span></div>` : ''}
+    <div class="jrow">${jbtn('Ulang', 'data-lreset', 'ghost')}${ok ? jbtn('Lanjut', 'data-lnext', 'green') : jbtn('Periksa', 'data-lcheck ' + (LS.placed.length < n ? 'disabled' : ''), 'green')}</div>${LS.src ? `<span class="jsrc">${esc(LS.src[2])}</span>` : ''}`;
 }
 const PZD = [['Madinah', 79.6, 15.7], ['Badar', 34.9, 36.1], ['Makkah', 70.4, 86], ['Thaif', 88.8, 90.6]];
 function puzzleHTML() {
@@ -193,18 +286,71 @@ function puzzleHTML() {
       return `<button data-pzdot="${i}" style="position:absolute;left:${p[1]}%;top:${p[2]}%;transform:translate(-50%,-50%);min-width:44px;min-height:44px;border-radius:22px;border:3px solid #fff;padding:0 10px;font:800 .85rem var(--jfont);background:${LS.checked && v ? (okk ? '#0E7C66' : '#F2B705') : v ? '#2450D6' : '#fff'};color:${v ? '#fff' : '#0F1D3D'}">${v || '?'}</button>`; }).join('')}</div>
     <div class="jgrid4">${PZD.map(p => p[0]).sort().map(c => `<button class="jchip" data-pzc="${c}" aria-pressed="${LS.pick === c}" ${Object.values(LS.put).includes(c) ? 'disabled' : ''}>${c}</button>`).join('')}</div>
     ${LS.checked ? `<div class="jrow"><img src="${jimonFace(right === 4 ? 'tertawa' : 'peduli')}" alt="" width="80" height="87"><span class="jmsg">${right === 4 ? 'MasyaAllah, semua benar!' : right + ' dari 4 benar. Yang kuning pindahkan lagi ya.'}</span></div>` : '<div class="jrow"><img src="' + jimonFace('dengar') + '" alt="" width="80" height="87"><span class="jmsg">Petunjuk: Badar ada di antara Makkah dan Madinah, dekat laut.</span></div>'}
-    <div class="jrow">${jbtn('Ulang', 'data-lreset', 'ghost')}${LS.checked && right === 4 ? jbtn('Selesai', 'data-ldone', 'green') : jbtn('Periksa', 'data-pzcheck ' + (all ? '' : 'disabled'), 'green')}</div>`;
+    <div class="jrow">${jbtn('Ulang', 'data-lreset', 'ghost')}${LS.checked && right === 4 ? jbtn('Lanjut', 'data-lnext', 'green') : jbtn('Periksa', 'data-pzcheck ' + (all ? '' : 'disabled'), 'green')}</div>`;
 }
-function finishHTML(l) {
-  const nx = curLesson();
+function nextAfter(it) { const nx = curItem(); return nx && nx.id !== it.id && islandState(nx.isl).open ? `<a class="jb gold block" href="#belajar/${nx.id}">Lanjut: ${esc(nx.n)}</a>` : ''; }
+function stepDoneHTML(it) {
   return `<div class="jcard" style="align-items:center;text-align:center"><img src="${jimg('jimon/suasana/bangga.webp')}" alt="Jimon bangga" width="160" height="170" class="jwig" style="width:160px;height:auto">
-    <h2>Pelajaran selesai!</h2><img src="${jimg('anak/star_jar.webp')}" alt="" width="70" height="70"><b style="font-size:1.4rem">+${l.xp} XP</b></div>
-    ${nx ? `<a class="jb gold block" href="#belajar/${nx.id}">Lanjut: ${esc(nx.n)}</a>` : ''}<a class="jb ghost block" href="#belajar">Kembali ke peta</a>`;
+    <h2>${LS.replay ? 'Ulangan selesai!' : 'Langkah selesai!'}</h2><span class="jmut">${LS.wrongs ? 'Ada ' + LS.wrongs + ' jawaban yang diulang. Bagus, kamu terus mencoba!' : 'Semua benar sejak pertama. MasyaAllah!'}</span>
+    <img src="${jimg('anak/star_jar.webp')}" alt="" width="70" height="70"><b style="font-size:1.4rem">${LS.gain ? '+' + LS.gain + ' XP' : 'XP ulangan sudah didapat hari ini'}</b></div>
+    ${nextAfter(it)}<a class="jb ghost block" href="#belajar">Kembali ke peta</a>`;
 }
-function completeLesson(l) {
-  const D = learnDone(); if (!(D[l.id] && D[l.id].done)) { D[l.id] = { done:1, xp:l.xp, d:todayK(), at:Date.now() }; jset('learn', D); if (typeof checkLevelUp === 'function') checkLevelUp(); }
-  LS.step = 'done'; bell && ding(); renderLesson(l);
+function examResultHTML(it) {
+  const p = Math.round(LS.ok / LS.qs.length * 100), g = GRADE(p), mum = p >= 90;
+  return `<div class="jcard" style="align-items:center;text-align:center"><img src="${jimg('jimon/suasana/' + (mum ? 'bangga' : 'berpikir') + '.webp')}" alt="" width="160" class="${mum ? 'jwig' : ''}" style="width:160px;height:auto">
+    <h2>${it.kind === 'boss' ? 'Ujian pulau' : 'Ujian unit'}: ${g}</h2><b style="font-size:2rem">${LS.ok} / ${LS.qs.length}</b><span class="jmut">${p}% · Mumtaz mulai 90%</span>
+    ${LS.gain ? `<b style="font-size:1.3rem;color:var(--jg)">+${LS.gain} XP</b>` : ''}
+    <span>${mum ? (it.kind === 'boss' ? 'Pulau ini selesai! Pulau berikutnya terbuka paling cepat 7 hari setelah pulau ini dibuka.' : 'Jalan berikutnya terbuka.') : 'Belum Mumtaz. Ujian ini bisa dicoba lagi besok. Sambil menunggu, ulangi langkah-langkahnya ya.'}</span></div>
+    ${mum ? nextAfter(it) : ''}<a class="jb ghost block" href="#belajar">Kembali ke peta</a>`;
 }
+function finishStep(it) {
+  const tk = todayK(), k = 's:' + it.id, e = L2()[k] || {};
+  if (!e.done) { l2put(k, x => { x.done = 1; x.xp = 5; x.d = tk; }); LS.gain = 5; }
+  else if (!(e.rp || {})[tk]) { l2put(k, x => { x.rp = Object.assign({}, x.rp || {}); x.rp[tk] = 5; }); LS.gain = 5; }
+  else LS.gain = 0;
+  LS.phase = 'done'; jvoice('b_langkah'); bell && ding(); paintItem(it);
+}
+function finishExam(it) {
+  const tk = todayK(), k = it.kind === 'exam' ? 'e:u' + (it.u + 1) : 'b:' + (it.isl + 1), p = Math.round(LS.ok / LS.qs.length * 100), mum = p >= 90, perfect = LS.ok === LS.qs.length;
+  const base = it.kind === 'exam' ? 10 : 30, bonus = it.kind === 'exam' ? 5 : 10, before = L2()[k] || {}, wasLast = it.kind === 'boss';
+  let gain = 0;
+  l2put(k, x => { x.tries = Object.assign({}, x.tries || {}); x.tries[tk] = p; x.best = Math.max(x.best || 0, p);
+    if (mum && !x.mum) { x.mum = 1; x.md = tk; x.xp = (x.xp || 0) + base; gain += base; }
+    if (perfect && !x.perfect) { x.perfect = 1; x.xp = (x.xp || 0) + bonus; gain += bonus; } });
+  LS.gain = gain; LS.phase = 'done';
+  jvoice(!mum ? 'b_ulang' : perfect ? 'b_mumtaz' : 'b_lulus', mum && wasLast && !before.mum && it.isl < 4 ? () => jvoice('b_tunggu') : null);
+  bell && ding(); paintItem(it);
+}
+
+/* ---------------- Kisah Pilihan ---------------- */
+let KPS = null;
+function renderKPList() {
+  const A = L2();
+  $('#v-belajar').innerHTML = `<div class="jw jkidw"><div class="jrow" style="padding-top:8px">${back('#belajar')}<h1>Kisah Pilihan</h1>${jsoundBtn()}</div>
+    <p class="jmut">Kamu tokohnya! Baca ceritanya, lalu pilih yang paling baik. Setiap kisah pertama kali selesai +5 XP.</p>
+    <div style="display:flex;flex-direction:column;gap:10px">${KISAHP.map(k => { const d = (A['k:' + k.id] || {}).done;
+      return `<a class="jcard" href="#belajar/kp-${k.id}" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center;background:var(--jkidcard)"><span class="jkpn ${d ? 'on' : ''}">${d ? '✓' : k.id.slice(1)}</span><span><b>${esc(k.t)}</b><br><span class="jmut">${d ? 'Sudah selesai' : 'Belum dibaca'}</span></span></a>`; }).join('')}</div></div>`;
+}
+function renderKP(id) {
+  const k = KISAHP.find(x => x.id === id); if (!k) { location.hash = '#belajar/kp'; return; }
+  if (!KPS || KPS.id !== id) { KPS = { id, opts:shuffle(k.ch.map((c, i) => Object.assign({ i }, c))), tried:[], end:false }; jvoice('k_mulai'); }
+  const tried = KPS.tried, last = tried[tried.length - 1];
+  $('#v-belajar').innerHTML = `<div class="jw jkidw"><div class="jrow" style="padding-top:8px">${back('#belajar/kp')}<h1>${esc(k.t)}</h1>${jsoundBtn()}</div>
+    <div class="jcard" style="background:var(--jsoft)"><p style="font-size:1.12rem;line-height:1.6;margin:0">${esc(k.scene)}</p></div>
+    <h2>Apa yang kamu lakukan?</h2>
+    <div class="jopt">${KPS.opts.map(o => `<button data-kpo="${o.i}" class="${KPS.end && o.best ? 'ok' : tried.includes(o.i) ? 'no' : ''}" ${KPS.end || tried.includes(o.i) ? 'disabled' : ''}>${esc(o.t)}</button>`).join('')}</div>
+    ${KPS.end ? `<div class="jcard" style="background:#E3F3EE;color:#0B5C4C"><b>MasyaAllah, pilihan yang hebat!</b><span>${esc(k.end)}</span><span class="jsrc">${esc(k.ref)}</span></div>
+      <div class="jrow"><img src="${jimg('jimon/suasana/bangga.webp')}" alt="" width="90" style="width:90px;height:auto" class="jwig"><span class="jmsg">${KPS.gain ? '+5 XP. ' : ''}Kamu bisa melakukannya di dunia nyata juga!</span></div>
+      <a class="jb gold block" href="#belajar/kp">Kisah lainnya</a>`
+    : last !== undefined ? `<div class="jrow"><img src="${jimonFace('peduli')}" alt="" width="80" height="87"><span class="jmsg">${esc(k.nudge)}</span></div>` : ''}</div>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-kpo]'); if (!b || !KPS) return;
+  const k = KISAHP.find(x => x.id === KPS.id), c = k.ch[Number(b.dataset.kpo)];
+  if (c.best) { KPS.end = true; const A = L2(); if (!(A['k:' + k.id] || {}).done) { l2put('k:' + k.id, x => { x.done = 1; x.xp = 5; x.d = todayK(); }); KPS.gain = 5; } jvoice('k_hebat'); }
+  else { KPS.tried.push(Number(b.dataset.kpo)); jvoice('k_pilih'); }
+  renderKP(k.id);
+});
 
 /* ---------------- Roda Ilmu ---------------- */
 let RD = null;
@@ -221,26 +367,38 @@ function renderRoda() {
       ${RD.pick ? `<b>${RD.pick === RD.q.r ? 'MasyaAllah, benar! +5 XP' : 'Terima kasih sudah mencoba! +2 XP'}</b>` : ''}</div>` : ''}</div>`;
 }
 
+
 /* ---------------- events ---------------- */
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-lsay],[data-lay],[data-lnext],[data-lopt],[data-lqn],[data-lcard],[data-lreset],[data-lcheck],[data-ldone],[data-pzc],[data-pzdot],[data-pzcheck],[data-rspin],[data-ropt]');
+  const w = e.target.closest('[data-lwhy]');
+  if (w) { e.preventDefault(); const i = Number(w.dataset.lwhy), st = islandState(i), cur = curItem();
+    jtoast(!st.open ? 'Pulau ' + (i + 1) + ': ' + st.why : cur ? 'Selesaikan dulu: ' + cur.n : 'Terkunci'); if (!st.open && i > 0) jvoice('b_tunggu'); return; }
+  const t = e.target.closest('[data-lsay],[data-lay],[data-lnext],[data-lopt],[data-lqn],[data-lcard],[data-lreset],[data-lcheck],[data-pzc],[data-pzdot],[data-pzcheck],[data-rspin],[data-ropt]');
   if (!t || t.disabled) return;
-  const ds = t.dataset, l = LS && lessonById(LS.id);
+  const ds = t.dataset, it = LS && itemById(LS.id), l = it && it.l;
   if (ds.rspin !== undefined) { const ci = Math.floor(Math.random() * 6); RD.rot = 1440 - (30 + ci * 60); RD.cat = RCAT[ci]; renderRoda();
     setTimeout(() => { const pool = Object.keys(QB).filter(k => QB[k][5] === RD.cat), c = pool[Math.floor(Math.random() * pool.length)]; RD.q = qOpts(QB[c][0], QB[c][1], QB[c][2], QB[c][3]); renderRoda(); }, 3300); return; }
-  if (ds.ropt) { RD.pick = ds.ropt; const R = jget('roda', {}); R[todayK()] = { ok:ds.ropt === RD.q.r ? 1 : 0, at:Date.now() }; jset('roda', R); if (typeof checkLevelUp === 'function') checkLevelUp(); return renderRoda(); }
-  if (!l) return;
+  if (ds.ropt) { RD.pick = ds.ropt; const R = jget('roda', {}); R[todayK()] = { ok:ds.ropt === RD.q.r ? 1 : 0, at:Date.now() }; jset('roda', R); jvoice(ds.ropt === RD.q.r ? jpick(['b_benar1', 'b_benar2', 'b_benar3']) : 'b_hampir2'); if (typeof checkLevelUp === 'function') checkLevelUp(); return renderRoda(); }
+  if (!it) return;
   if (ds.lsay !== undefined) { const k = l.d.split(',')[LS.page]; if ('speechSynthesis' in window) { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(KS[k][1]); u.lang = 'id-ID'; u.rate = .95; speechSynthesis.speak(u); } return; }
-  if (ds.lay !== undefined) { LS.ay = !LS.ay; return renderLesson(l); }
-  if (ds.lnext !== undefined) { if ('speechSynthesis' in window) speechSynthesis.cancel(); const pages = l.d.split(',').length; if (LS.page < pages - 1) { LS.page++; LS.ay = false; } else LS.step = 1; return renderLesson(l); }
-  if (ds.lopt) { LS.pick = ds.lopt; return renderLesson(l); }
-  if (ds.lqn !== undefined) { LS.pick = null; LS.qi++; if (LS.qi >= LS.qs.length) return completeLesson(l); return renderLesson(l); }
-  if (ds.lcard) { const c = LS.cards[Number(ds.lcard)]; if (LS.placed.length < LS.items.length) LS.placed.push(c); LS.checked = false; return renderLesson(l); }
-  if (ds.lreset !== undefined) { LS.placed = []; LS.put = {}; LS.checked = false; LS.pick = null; return renderLesson(l); }
-  if (ds.lcheck !== undefined) { LS.checked = true; return renderLesson(l); }
-  if (ds.ldone !== undefined) return completeLesson(l);
-  if (ds.pzc) { LS.pick = LS.pick === ds.pzc ? null : ds.pzc; return renderLesson(l); }
-  if (ds.pzdot !== undefined) { if (!LS.pick) return; Object.keys(LS.put).forEach(k => { if (LS.put[k] === LS.pick) delete LS.put[k]; }); LS.put[ds.pzdot] = LS.pick; LS.pick = null; LS.checked = false; return renderLesson(l); }
-  if (ds.pzcheck !== undefined) { LS.checked = true; return renderLesson(l); }
+  if (ds.lay !== undefined) { LS.ay = !LS.ay; return paintItem(it); }
+  if (ds.lnext !== undefined) { if ('speechSynthesis' in window) speechSynthesis.cancel();
+    if (l && l.t === 'kisah' && LS.page < l.d.split(',').length - 1) { LS.page++; LS.ay = false; } else { LS.phase = 'q'; LS.pick = null; }
+    window.scrollTo(0, 0); return paintItem(it); }
+  if (ds.lopt) { if (LS.pick !== null) return; const q = LS.qs[LS.qi], ok = ds.lopt === q.r; LS.pick = ds.lopt; LS.asked++;
+    if (ok) { LS.ok++; jvoice(jpick(['b_benar1', 'b_benar2', 'b_benar3'])); }
+    else { LS.wrongs++; jvoice(it.kind === 'step' ? 'b_hampir1' : 'b_hampir2');
+      if (it.kind === 'step') { const again = buildQ(q.c); if (again) LS.qs.push(again); } }
+    return paintItem(it); }
+  if (ds.lqn !== undefined) { LS.pick = null; LS.qi++; window.scrollTo(0, 0);
+    if (LS.qi >= LS.qs.length) return it.kind === 'step' ? finishStep(it) : finishExam(it);
+    return paintItem(it); }
+  if (ds.lcard) { const c = LS.cards[Number(ds.lcard)]; if (LS.placed.length < LS.items.length) LS.placed.push(c); LS.checked = false; return paintItem(it); }
+  if (ds.lreset !== undefined) { LS.placed = []; LS.put = {}; LS.checked = false; LS.pick = null; return paintItem(it); }
+  if (ds.lcheck !== undefined) { LS.checked = true; return paintItem(it); }
+  if (ds.pzc) { LS.pick = LS.pick === ds.pzc ? null : ds.pzc; return paintItem(it); }
+  if (ds.pzdot !== undefined) { if (!LS.pick) return; Object.keys(LS.put).forEach(k => { if (LS.put[k] === LS.pick) delete LS.put[k]; }); LS.put[ds.pzdot] = LS.pick; LS.pick = null; LS.checked = false; return paintItem(it); }
+  if (ds.pzcheck !== undefined) { LS.checked = true; LS.pick = null; return paintItem(it); }
 });
-addEventListener('hashchange', () => { if (!location.hash.startsWith('#belajar')) { LS = null; RD = null; if ('speechSynthesis' in window) speechSynthesis.cancel(); } else if (location.hash === '#belajar/roda') RD = null; });
+addEventListener('hashchange', () => { if (!location.hash.startsWith('#belajar')) { LS = null; RD = null; KPS = null; if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+  else { if (location.hash === '#belajar/roda') RD = null; if (!location.hash.startsWith('#belajar/kp-')) KPS = null; } });

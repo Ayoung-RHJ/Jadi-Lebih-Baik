@@ -143,6 +143,7 @@ body.jkid{background:var(--jkid)}
 .jroom .win{position:absolute;left:24px;top:40px;width:100px;height:100px;border-radius:50px 50px 8px 8px;background:#2B3B66}
 .jroom .shelf{position:absolute;right:22px;top:110px;width:130px;height:10px;border-radius:4px;background:#B98B54}
 .jroom .cat{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);border:0;background:none;padding:0;cursor:pointer}
+.jaccg{display:flex;flex-direction:column;gap:6px}.jaccg>b{font-size:.95rem}.jaccg small{font-weight:600;color:var(--jmut);font-size:.75rem}
 .jacc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .jacc button{position:relative;min-height:112px;border-radius:20px;border:2px solid var(--jline);background:var(--jkidcard);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 .78rem var(--jfont);color:var(--jink);cursor:pointer}
 .jacc button img{height:52px;max-width:80%;object-fit:contain}
@@ -211,3 +212,50 @@ body.jaudio .jqari{display:block}
 .jhero{text-shadow:0 1px 3px rgba(15,29,61,.55)}
 .jhero::before{content:"";position:absolute;inset:0 0 auto 0;height:45%;background:linear-gradient(180deg,rgba(15,29,61,.45),rgba(15,29,61,0));z-index:1;pointer-events:none}
 .jhab.jnow{border-color:var(--jy);box-shadow:0 0 0 3px rgba(242,183,5,.25)}
+
+/* ---- jlb7: Belajar Musim Baru, Kisah Pilihan, Jimon voice, Gerak bersama Jimon ---- */
+.jstone i{position:relative}
+.jstone .jmum{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);background:#0F1D3D;color:#FFD84D;font:800 .58rem var(--jfont);font-style:normal;padding:1px 6px;border-radius:8px;white-space:nowrap}
+.jstone .jok{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#fff;color:#0E7C66;font:900 .8rem var(--jfont);font-style:normal;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 0 rgba(15,29,61,.2)}
+.jstone.boss i{border-width:5px;border-color:#FFD84D}
+.jisl{position:absolute;right:12px;padding:6px 12px;border-radius:14px;color:#fff;font:800 .82rem var(--jfont);box-shadow:0 4px 0 rgba(15,29,61,.2)}
+.jisl.gold{background:#B88A00!important;color:#fff}
+.jlockisl{position:absolute;left:8%;right:8%;transform:translateY(-50%);background:rgba(15,29,61,.86);color:#fff;border-radius:20px;padding:12px 16px;display:flex;flex-direction:column;gap:2px;text-align:center;z-index:2}
+.jlockisl span{font-size:.85rem;opacity:.9}
+.jstone.lock{opacity:.85}
+.jopt.arab button{font-family:'Amiri',serif;font-size:1.35rem;line-height:1.9;direction:rtl;text-align:right}
+.jkpn{width:44px;height:44px;border-radius:50%;background:var(--jsoft);display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
+.jkpn.on{background:#0E7C66;color:#fff}
+.jsnd{min-width:44px;min-height:44px;border:0;border-radius:22px;background:var(--jcard);color:var(--jb);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(15,29,61,.12)}
+.jsnd[aria-pressed="false"]{color:var(--jmut)}
+.jopt button.ok:disabled{opacity:1}
+.jopt button.no:disabled{opacity:.9}
+/* Gerak bersama Jimon */
+.jghero{position:relative;min-height:330px;border-radius:28px;margin:0 -16px;padding:14px 16px;background:linear-gradient(180deg,#2450D6 0%,#3D6BE8 60%,#8FB2FF 100%);color:#fff;overflow:hidden}
+.jghero .jgt{font-size:1.25rem}
+.jgbub{position:relative;z-index:1;margin:10px 120px 0 0;background:#fff;color:#0F1D3D;border-radius:20px 20px 20px 6px;padding:10px 14px;font-weight:700;line-height:1.35;box-shadow:0 4px 14px rgba(15,29,61,.15)}
+.jgtag{position:absolute;right:16px;top:70px;background:#FFD84D;color:#5A3B00;border-radius:14px;padding:4px 10px;font-weight:800;font-size:.8rem}
+.jgcat{position:absolute;left:50%;bottom:0;transform:translateX(-50%);border:0;background:none;padding:0;cursor:pointer}
+.jgcat img{height:210px;width:auto;display:block;animation:jbob 3s ease-in-out infinite}
+@keyframes jbob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.jgweek{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.jgweek span{display:flex;flex-direction:column;align-items:center;gap:4px}
+.jgweek b{width:40px;height:40px;border-radius:20px;background:#F3F5F9;color:#5A6788;display:flex;align-items:center;justify-content:center;font-size:.8rem}
+.jgweek .on b{background:#FFD84D;color:#5A3B00}
+.jgweek .fut b{background:transparent;border:2px dashed #C9D4EA}
+.jgweek .now b{outline:3px solid var(--jb)}
+.jgweek small{font-size:.72rem;font-weight:800;color:var(--jmut)}
+.jgpick{display:flex;flex-direction:column;gap:10px}
+.jgpick button{min-height:84px;border-radius:22px;border:2px solid var(--jline);background:var(--jcard);color:var(--jink);display:flex;align-items:center;gap:12px;padding:10px 14px;text-align:left;font:inherit;cursor:pointer}
+.jgpick button[aria-pressed="true"]{border:3px solid var(--jb);background:var(--jsoft)}
+.jgpick button>span:first-child{width:56px;height:56px;border-radius:18px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;flex-shrink:0}
+.jgpick button>span:nth-child(2){display:flex;flex-direction:column;flex:1}
+.jgpick small{color:var(--jmut)}
+.jgpick em{font-style:normal;font-weight:800;color:var(--jb);font-size:.85rem}
+.jgmoves{display:flex;flex-wrap:wrap;gap:6px}
+.jgmoves span{background:var(--jsoft);border-radius:14px;padding:6px 10px;font-weight:700;font-size:.9rem}
+.jggo{min-height:64px;font-size:1.15rem}
+/* Jimon as coach inside the player */
+.coachline.jimonc{align-items:flex-end}
+.coachline.jimonc .jcoach{width:96px;height:auto;flex-shrink:0;animation:jbob 2.6s ease-in-out infinite}
+@media (prefers-reduced-motion: reduce){.jgcat img,.coachline.jimonc .jcoach{animation:none}}

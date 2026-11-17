@@ -5,7 +5,7 @@
    the people list, workout log and weight log are merged instead.
    ========================================================= */
 const SYNC = { url:'https://kbrniessfsmnyqmbruxy.supabase.co', key:'sb_publishable_lvBaPQUCgmxBKl56xYIUBg_f55mKTaI' };
-const LOCAL_ONLY = new Set(['cur','lang','motion','planview','theme','welcomed','welcomed_jlb','fam']);
+const LOCAL_ONLY = new Set(['cur','lang','motion','planview','theme','welcomed','welcomed_jlb','fam','jsound']);
 const syncable = k => !!k && !LOCAL_ONLY.has(k) && k[0] !== '_';
 const _rawSet = store.set;
 let MT = store.get('_mt', {}), DIRTY = new Set(store.get('_dirty', []));

@@ -23,7 +23,7 @@ function badgesGot(id) {
   return new Set([
     run(d => d.s && d.s.subuh && d.s.subuh.f) >= 7 && 'subuh7', run(d => PR.every(p => d.s && d.s[p] && d.s[p].f)) >= 7 && 'lengkap7',
     cnt('doa_bangun') >= 14 && 'doabangun', cnt('bantu') >= 20 && 'pembantu', cnt('baca') >= 10 && 'iqro', O.marks.fatihah && 'fatihah',
-    (O.marks.puasa || puasa) && 'puasa', Object.values(roda).filter(x => x && x.ok).length >= 10 && 'roda', Object.keys(learn).some(k => /-6$/.test(k) && learn[k].done) && 'unit',
+    (O.marks.puasa || puasa) && 'puasa', Object.values(roda).filter(x => x && x.ok).length >= 10 && 'roda', (Object.keys(learn).some(k => /-6$/.test(k) && learn[k].done) || Object.keys(pget(id, 'jlb:learn2', {}) || {}).some(k => k.startsWith('e:') && pget(id, 'jlb:learn2', {})[k].mum)) && 'unit',
     log.length >= 10 && 'ninja', run(lit) >= 30 && 'bersih', O.marks.ramadan && 'ramadan'
   ].filter(Boolean));
 }
@@ -43,14 +43,14 @@ function renderKidHome() {
   <section class="jhero" style="min-height:330px;justify-content:flex-start"><img class="bg" src="${jimg('langit/sky_' + skyNow(now) + '.webp')}" alt="" fetchpriority="high">
     <div class="jrow" style="justify-content:space-between"><span class="jpill">${pt.bal} XP</span><span class="jpill">Level ${levelOf(xpTotal()).l}</span></div>
     <h1 style="margin-top:10px">Halo, ${esc(PROF.name)}!</h1><span style="opacity:.9">${hijriTxt(hijri(now))}</span>
-    <a href="#saya" style="position:absolute;left:50%;bottom:0;transform:translateX(-50%)" aria-label="Ke kamar Jimon">${dirt ? `<img src="${jimg('jimon/keadaan/j_debu.webp')}" alt="Jimon berdebu" width="170" height="165">` : jimonHTML({ face, wear:J.wear, w:160, blink:true, cls:'jbreathe' })}</a>
+    <a href="#saya" style="position:absolute;left:50%;bottom:0;transform:translateX(-50%)" aria-label="Ke kamar Jimon">${dirt ? `<img src="${jimg('jimon/keadaan/j_debu.webp')}" alt="Jimon berdebu" width="170" height="165">` : jimonHTML({ face, wear:jWear(J.wear), w:160, blink:true, cls:'jbreathe' })}</a>
     ${dirt ? `<span style="position:absolute;left:12px;bottom:120px;max-width:150px;background:#fff;color:#0F1D3D;border-radius:16px;padding:8px 10px;font-size:.85rem">${JWORD[Math.min(2, dirt)]}</span>` : ''}</section>
   <section class="jcard" style="background:var(--jkidcard)"><div class="jrow sp"><h2>Lentera sholat</h2><span class="jpill">${lit} dari 5</span></div><div class="jlant">${lan}</div>
     <span class="jmut">Nyalakan lentera setelah sholat. Setiap lentera +10 XP.</span></section>
   <div class="jgrid2">
     <a class="jcard" href="#amal" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('rapikan')}<b>Misi hari ini</b><span class="jmut">${Object.keys(d.m || {}).length} selesai</span></a>
     <a class="jcard" href="#belajar" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('ilmu')}<b>Belajar Seru</b><span class="jmut">Lanjutkan petualangan</span></a>
-    <a class="jcard" href="#home" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('ninja')}<b>Jurus Ninja</b><span class="jmut">+10 XP tiap sesi</span></a>
+    <a class="jcard" href="#home" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('ninja')}<b>Gerak bersama Jimon</b><span class="jmut">+10 XP tiap sesi</span></a>
     <a class="jcard" href="#jimon" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('telepon')}<b>Ngobrol dengan Jimon</b><span class="jmut">Jimon menunggumu</span></a></div>
   <a class="jcard" href="#peti" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center;background:var(--jkidcard)"><img src="${jimg('anak/star_jar.webp')}" alt="" width="70" height="70"><span><h2>Toples bintang: ${pt.bal} XP</h2><span class="jmut">${fri ? 'Hari ini Jumat! Peti Jumat terbuka.' : 'Tukar jadi waktu main di Peti Jumat'}</span></span></a>
   </div>`;
@@ -67,18 +67,20 @@ function renderMisi() {
 }
 
 /* ---------------- Kamar Jimon (Saya anak) ---------------- */
-let KPET = 0, KBATH = false, KPOP = null;
+let KPET = 0, KBATH = false, KPOP = null, KVOICE = '';
 function renderKamar() {
   if (!jget('jimon', {}).since) jset('jimon', Object.assign({}, jget('jimon', {}), { since:todayK() }));
   const J = jget('jimon', {}), dirt = KBATH ? 0 : jimonDirt(), xp = xpTotal(), L = levelOf(xp), got = badgesGot(), d = dayOf(todayK()), missDone = Object.keys(d.m || {}).length > 0;
-  const wear = J.wear || '', tidur = wear === 'tidur';
+  const wear = jWear(J.wear), tidur = jTidur(J), worn = Object.keys(wear).length;
+  if (dirt && !KBATH && KVOICE !== 'debu' + todayK()) { KVOICE = 'debu' + todayK(); jvoice('j_debu'); }
   let cat;
   if (KBATH) cat = `<img src="${jimg('jimon/keadaan/j_mandi.webp')}" alt="Jimon mandi busa" width="172" height="214" class="jwig">`;
   else if (dirt) cat = `<img src="${jimg('jimon/keadaan/j_debu.webp')}" alt="Jimon berdebu" width="200" height="194">`;
   else if (tidur) cat = `<img src="${jimg('jimon/keadaan/j_tidur.webp')}" alt="Jimon tidur" width="200" height="141">`;
   else cat = jimonHTML({ face:KPET % 2 ? 'dengkur' : 'senang', wear, w:185, blink:!(KPET % 2), cls:'jbreathe' });
-  const acc = Object.keys(JACC).map(k => { const A = JACC[k], lock = L.l < A.lv, on = wear === k;
-    return `<button data-kwear="${k}" aria-pressed="${on}" ${lock ? 'disabled' : ''}><img src="${jimg('jimon/hiasan/a_' + k + '.webp')}" alt="" loading="lazy">${A.n}<small>${on ? 'dipakai' : lock ? 'Level ' + A.lv : 'terbuka'}</small></button>`; }).join('');
+  const acc = JSLOTS.map(([sl, sn]) => { const ks = Object.keys(JACC).filter(k => JACC[k].slot === sl);
+    return `<div class="jaccg"><b>${sn}${ks.length > 1 ? ' <small>pilih satu</small>' : ''}</b><div class="jacc">${ks.map(k => { const A = JACC[k], lock = L.l < A.lv, on = wear[sl] === k;
+      return `<button data-kwear="${k}" aria-pressed="${on}" ${lock ? 'disabled' : ''}><img src="${jimg('jimon/hiasan/a_' + k + '.webp')}" alt="" loading="lazy">${A.n}<small>${on ? 'dipakai' : lock ? 'Level ' + A.lv : 'terbuka'}</small></button>`; }).join('')}</div></div>`; }).join('');
   $('#v-saya').innerHTML = `<div class="jw jkidw">
   <section class="jroom"><div class="floor"></div><div class="win"></div><div class="shelf"></div>
     <img src="${jimg('anak/star_jar.webp')}" alt="" style="position:absolute;right:30px;top:52px;height:60px" width="60" height="60">
@@ -91,8 +93,9 @@ function renderKamar() {
     <div class="jrow"><a class="jb ghost" href="#amal" style="flex:1">Ke Misi</a>${jbtn('Mandikan Jimon', 'data-kbath ' + (missDone ? '' : 'disabled'), 'block')}</div>${missDone ? '' : '<span class="jmut" style="color:#6B4A00">Tombol mandi aktif setelah 1 misi selesai.</span>'}</section>` : ''}
   <section class="jcard" style="background:var(--jkidcard)"><div class="jrow sp"><h2>Level ${L.l}</h2><span class="jpill">${xp} XP</span></div><div class="jbar"><i style="width:${L.pct}%"></i></div>
     <span class="jmut">${L.next ? (L.next - xp) + ' XP lagi ke Level ' + (L.l + 1) : 'Level tertinggi. MasyaAllah!'}</span><span class="jmut" style="font-size:.78rem">Level dihitung dari semua XP yang pernah didapat. Menukar waktu main tidak menurunkan level.</span></section>
-  <section class="jcard" style="background:var(--jkidcard)"><div class="jrow sp"><h2>Hiasan Jimon</h2><button class="jchip" data-kwear="tidur" aria-pressed="${tidur}">Tidur</button></div><div class="jacc">${acc}</div>
-    <span class="jmut">Hiasan yang dipakai ikut terlihat saat ngobrol dengan Jimon.</span></section>
+  <section class="jcard" style="background:var(--jkidcard)"><div class="jrow sp"><h2>Hiasan Jimon</h2><span class="jrow" style="gap:6px">${worn ? '<button class="jchip" data-kwear="lepas">Lepas semua</button>' : ''}<button class="jchip" data-kwear="tidur" aria-pressed="${tidur}">Tidur</button></span></div>
+    <span class="jmut">Hiasan dari bagian berbeda bisa dipakai bersamaan. Di satu bagian, pilih satu saja.</span>${acc}
+    <span class="jmut">Hiasan yang dipakai ikut terlihat di Beranda dan saat ngobrol dengan Jimon.</span></section>
   <a class="jb gold block" href="#jimon">Ngobrol dengan Jimon</a>
   <section class="jcard" style="background:var(--jkidcard)"><div class="jrow sp"><h2>Rak lencanaku</h2><span class="jmut">${got.size} dari ${BADGES_K.length}</span></div>
     <div class="jgrid4">${BADGES_K.map(([k, n, m, ic]) => { const g = got.has(k); return `<div style="text-align:center;opacity:${g ? 1 : .4};filter:${g ? 'none' : 'grayscale(1)'}"><span style="position:relative;display:inline-block;width:56px;height:70px"><img src="${jimg('anak/medali_' + m + '.webp')}" alt="" width="56" height="70" loading="lazy"><img src="${jimg('ikon/' + ic + '.webp')}" alt="" style="position:absolute;left:13px;top:11px;width:30px;height:30px;border-radius:50%" loading="lazy"></span><small style="display:block;font-size:.7rem;line-height:1.2">${n}</small></div>`; }).join('')}</div></section>
@@ -104,11 +107,12 @@ function renderKamar() {
 const STOPS_KID_NAME = () => { const n = ['Yaqazah', 'Taubah', 'Muhasabah', 'Istiqamah', 'Ikhlas', 'Sabar', 'Syukur', 'Tawakkal', 'Muraqabah', 'Mahabbah', 'Ridha']; return n[(jget('jalan', {}).stop) || 0]; };
 function checkLevelUp() {   // show the level-up sheet once per new level
   const L = levelOf(xpTotal()).l, J = jget('jimon', {});
-  if ((J.seenLv || 1) < L) { const k = Object.keys(JACC).find(x => JACC[x].lv === L); jset('jimon', Object.assign({}, J, { seenLv:L })); if (k) { KPOP = k; } }
+  if ((J.seenLv || 1) < L) { const k = Object.keys(JACC).find(x => JACC[x].lv === L); jset('jimon', Object.assign({}, J, { seenLv:L })); if (k) { KPOP = k; } jvoice('c_naik'); }
 }
 
 /* ---------------- Peti Jumat ---------------- */
 function renderPeti() {
+  if (new Date().getDay() === 5 && KVOICE !== 'jumat' + todayK()) { KVOICE = 'jumat' + todayK(); jvoice('j_jumat'); }
   const S = petiState(), fri = new Date().getDay() === 5, pend = Object.entries(S.reqs).filter(([, r]) => r && r.st === 'req');
   const can = Math.min(S.bal, S.left), opts = [10, 20, 30, 60, 90].filter(m => m <= can);
   $('#v-peti').innerHTML = `<div class="jw jkidw"><div class="jrow" style="padding-top:8px">${back('#taman')}<h1>Peti Jumat</h1></div>
@@ -140,6 +144,14 @@ function renderOrtu() {
     <section class="jcard"><h2>Batas waktu main per pekan</h2><div class="jtick">${[120, 180, 240, 300, 360].map(m => `<button class="jchip" data-ocap="${m}" aria-pressed="${O.cap === m}">${m / 60} jam</button>`).join('')}</div></section>
     <section class="jcard"><h2>Misi harian</h2>${Object.keys(MISSIONS).map(m => `<label class="jrow sp"><span>${MISSIONS[m].n}</span><input type="checkbox" data-omis="${m}" ${O.missions.includes(m) ? 'checked' : ''} style="width:24px;height:24px"></label>`).join('')}</section>
     <section class="jcard"><h2>Tandai pencapaian</h2>${[['fatihah', 'Sudah hafal Al-Fatihah'], ['puasa', 'Puasa pertama'], ['ramadan', 'Ramadan penuh (sesuai kemampuan)']].map(([k, t]) => `<label class="jrow sp"><span>${t}</span><input type="checkbox" data-omark="${k}" ${O.marks[k] ? 'checked' : ''} style="width:24px;height:24px"></label>`).join('')}</section>
+    <section class="jcard"><h2>Belajar: akses pulau</h2><span class="jmut">Aturan biasa: pulau berikutnya terbuka setelah ujian pulau Mumtaz, paling cepat 7 hari setelah pulau sebelumnya dibuka. Di sini Ayah atau Ibu bisa membuka lebih awal atau mengunci.</span>
+      ${typeof islandState === 'function' ? ISL.map((x, i) => { const st = islandState(i), ov = (O.isl || {})[i + 1];
+        return `<div class="jrow sp" style="flex-wrap:wrap"><span><b>Pulau ${i + 1}</b> · ${x[0].replace('Pulau ', '')}<br><span class="jmut">${st.open ? 'Terbuka' : esc(st.why)}${ov ? ' · diatur orang tua' : ''}</span></span>${i ? `<span class="jrow" style="gap:6px">${jbtn('Buka', 'data-oisl="' + (i + 1) + ':open"', ov && ov.st === 'open' ? 'green' : 'ghost')}${jbtn('Kunci', 'data-oisl="' + (i + 1) + ':lock"', ov && ov.st === 'lock' ? 'navy' : 'ghost')}${ov ? jbtn('Aturan biasa', 'data-oisl="' + (i + 1) + ':auto"', 'ghost') : ''}</span>` : ''}</div>`; }).join('') : ''}</section>
+    <section class="jcard"><h2>Ajari Jimon</h2><span class="jmut">Tambahkan jawaban Jimon untuk kata-kata yang sering ditulis anak. Jawaban dari Ayah atau Ibu dipakai lebih dulu, dan ikut tersinkron ke perangkat keluarga.</span>
+      <label for="oAjQ"><b>Kalau anak menulis</b></label><input id="oAjQ" class="inp" maxlength="60" placeholder="contoh: jimon suka ikan" autocomplete="off">
+      <label for="oAjA"><b>Jimon menjawab</b></label><input id="oAjA" class="inp" maxlength="160" placeholder="contoh: Suka sekali! Tapi aku lebih suka belajar bersamamu." autocomplete="off">
+      ${jbtn('Simpan jawaban', 'data-oajar', 'navy block')}
+      ${(O.ajar || []).map((x, i) => `<div class="jrow sp"><span><b>${esc(x.q)}</b><br><span class="jmut">${esc(x.a)}</span></span>${jbtn('Hapus', 'data-oajdel="' + i + '"', 'ghost')}</div>`).join('') || '<span class="jmut">Belum ada.</span>'}</section>
     <section class="jcard"><h2>Jimon</h2><label class="jrow sp"><span>Boleh ngobrol dengan Jimon</span><input type="checkbox" data-ochat ${O.chat ? 'checked' : ''} style="width:24px;height:24px"></label>
       <span class="jmut">Jimon Pintar bekerja tanpa internet dan hanya menjawab dari isi yang sudah diperiksa ustadz. Batas ${O.limit} pesan per hari. Mengelus Jimon tidak memberi XP.</span>
       <b>Obrolan terakhir</b>${chat.length ? chat.map(c => `<p class="jmut">${c.me ? 'Anak' : 'Jimon'}: ${esc(c.t)}</p>`).join('') : '<p class="jmut">Belum ada obrolan.</p>'}</section></div>`;
@@ -148,7 +160,7 @@ const setOrtu = patch => { const O = Object.assign({}, pget(CUR, 'jlb:ortu', {})
 
 /* ---------------- events ---------------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-klan],[data-kmis],[data-kpet],[data-kbath],[data-kwear],[data-kpop],[data-kpeti],[data-oopen],[data-olock],[data-oreq],[data-ocap],[data-omode]');
+  const t = e.target.closest('[data-klan],[data-kmis],[data-kpet],[data-kbath],[data-kwear],[data-kpop],[data-kpeti],[data-oopen],[data-olock],[data-oreq],[data-ocap],[data-omode],[data-oisl],[data-oajar],[data-oajdel]');
   if (!t || t.disabled) return;
   const ds = t.dataset, tk = todayK();
   if (ds.klan) { dayPut(tk, d => { d.s = d.s || {}; const s = Object.assign({}, d.s[ds.klan] || {}); s.f = s.f ? 0 : 1; d.s[ds.klan] = s; });
@@ -156,9 +168,12 @@ document.addEventListener('click', async e => {
   if (ds.kmis) { dayPut(tk, d => { d.m = Object.assign({}, d.m || {}); if (d.m[ds.kmis]) delete d.m[ds.kmis]; else d.m[ds.kmis] = 1; });
     if (ds.kmis === 'puasa' && typeof setFast === 'function') setFast(tk, (dayOf(tk).m || {}).puasa ? 'half' : '');
     if ((dayOf(tk).m || {})[ds.kmis]) { jtoast('Misi selesai! +5 XP'); checkLevelUp(); } return renderMisi(); }
-  if (ds.kpet !== undefined) { if (jimonDirt() || KBATH) return; KPET++; renderKamar(); clearTimeout(window._kp); window._kp = setTimeout(() => { if (KPET % 2) { KPET++; if (document.body.dataset.view === 'saya') renderKamar(); } }, 1700); return; }
-  if (ds.kbath !== undefined) { KBATH = true; renderKamar(); setTimeout(() => { KBATH = false; jset('jimon', Object.assign({}, jget('jimon', {}), { bath:tk })); jtoast('Wah, wangi! Terima kasih sudah merawatku.'); if (document.body.dataset.view === 'saya') renderKamar(); }, 1800); return; }
-  if (ds.kwear) { const J = jget('jimon', {}); jset('jimon', Object.assign({}, J, { wear:J.wear === ds.kwear ? '' : ds.kwear })); KPOP = null; return renderKamar(); }
+  if (ds.kpet !== undefined) { if (jimonDirt() || KBATH) return; KPET++; if (KPET % 2) jvoice(KPET % 6 === 5 ? 'tertawa' : 'dengkur'); renderKamar(); clearTimeout(window._kp); window._kp = setTimeout(() => { if (KPET % 2) { KPET++; if (document.body.dataset.view === 'saya') renderKamar(); } }, 1700); return; }
+  if (ds.kbath !== undefined) { KBATH = true; renderKamar(); setTimeout(() => { KBATH = false; jset('jimon', Object.assign({}, jget('jimon', {}), { bath:tk })); jtoast('Wah, wangi! Terima kasih sudah merawatku.'); jvoice('j_mandi'); if (document.body.dataset.view === 'saya') renderKamar(); }, 1800); return; }
+  if (ds.kwear) { const J = jget('jimon', {}), W = jWear(J.wear), k = ds.kwear; let tidur = jTidur(J);
+    if (k === 'tidur') tidur = !tidur; else if (k === 'lepas') Object.keys(W).forEach(x => delete W[x]);
+    else if (JACC[k]) { const sl = JACC[k].slot; if (W[sl] === k) delete W[sl]; else { W[sl] = k; tidur = false; jvoice('j_hiasan'); } }
+    jset('jimon', Object.assign({}, J, { wear:W, tidur })); KPOP = null; return renderKamar(); }
   if (ds.kpop !== undefined && (e.target === t || t.tagName === 'BUTTON')) { KPOP = null; return renderKamar(); }
   if (ds.kpeti) { const R = jget('peti', {}); R['r' + Date.now()] = { wk:weekKey(), min:Number(ds.kpeti), st:'req', at:Date.now() }; jset('peti', R); jtoast('Permintaan dikirim ke Ayah atau Ibu'); return renderPeti(); }
   if (ds.oopen !== undefined) { const pin = ($('#oPin').value || '').trim(), O = ortu(); if (!/^\d{4}$/.test(pin)) { $('#oErr').textContent = 'PIN harus 4 angka.'; return; }
@@ -166,6 +181,10 @@ document.addEventListener('click', async e => {
   if (ds.olock !== undefined) { OUNLOCK = false; return renderOrtu(); }
   if (ds.oreq) { const [k, st] = ds.oreq.split(':'), R = jget('peti', {}); if (R[k]) { R[k] = Object.assign({}, R[k], { st, at:Date.now() }); jset('peti', R); } return renderOrtu(); }
   if (ds.ocap) { setOrtu({ cap:Number(ds.ocap) }); return renderOrtu(); }
+  if (ds.oisl && OUNLOCK) { const [n, st] = ds.oisl.split(':'), I = Object.assign({}, ortu().isl || {}); if (st === 'auto') delete I[n]; else I[n] = { st, d:todayK() }; setOrtu({ isl:I }); return renderOrtu(); }
+  if (ds.oajar !== undefined && OUNLOCK) { const q = ($('#oAjQ').value || '').trim(), a = ($('#oAjA').value || '').trim(); if (!q || !a) { jtoast('Isi kedua kolom dulu ya.'); return; }
+    setOrtu({ ajar:[{ q, a }].concat(ortu().ajar || []).slice(0, 40) }); jtoast('Jimon sudah belajar jawaban baru'); return renderOrtu(); }
+  if (ds.oajdel !== undefined && OUNLOCK) { const A = (ortu().ajar || []).slice(); A.splice(Number(ds.oajdel), 1); setOrtu({ ajar:A }); return renderOrtu(); }
   if (ds.omode && OUNLOCK) { OUNLOCK = false; return setMode(CUR, ds.omode); }
 });
 document.addEventListener('change', e => {

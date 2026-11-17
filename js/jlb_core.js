@@ -3,7 +3,7 @@
    XP and levels, Jimon state, lazy modules, tabs and routes.
    All data lives in the same corner3:* storage and syncs like the rest.
    ========================================================= */
-const JLB_VER = 'jlb6';
+const JLB_VER = 'jlb7';
 const JIMG = 'img/jlb/';
 const PR = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
 const PRN = { subuh:'Subuh', dzuhur:'Dzuhur', ashar:'Ashar', maghrib:'Maghrib', isya:'Isya' };
@@ -91,6 +91,7 @@ function xpBreak(id) {
     if (d.jp) r.jalan += 5;
   });
   Object.values(learn).forEach(l => { if (l && l.done) r.belajar += l.xp || 10; });
+  Object.values(pget(id, 'jlb:learn2', {}) || {}).forEach(l => { if (!l) return; r.belajar += l.xp || 0; Object.values(l.rp || {}).forEach(x => { r.belajar += x || 0; }); });
   Object.values(roda).forEach(x => { if (x) r.roda += x.ok ? 5 : 2; });
   r.gerak = log.filter(e => e && e.kind !== 'act').length * 10 + log.filter(e => e && e.kind === 'act').length * 10;
   r.total = Object.keys(r).reduce((a, k) => a + r[k], 0);
@@ -118,11 +119,21 @@ function petiState(id) {
 
 /* ---- Jimon ---- */
 const JACC = {
-  syal:{ n:'Syal', lv:1, pos:[30.6, 51.3, 38.9, 0] }, tas:{ n:'Tas kecil', lv:2, pos:[37.5, 52.6, 33.3, 0] }, ikat:{ n:'Ikat kepala', lv:3, pos:[27.2, 17.9, 47.2, 0] },
-  kacamata:{ n:'Kacamata', lv:4, pos:[24.2, 32.3, 63.6, 0] }, lentera:{ n:'Lentera', lv:5, pos:[72.8, 69.7, 16.1, 0] }, topi:{ n:'Topi petualang', lv:6, pos:[23.6, 4.1, 52.8, 0] },
-  jubah:{ n:'Jubah pahlawan', lv:7, pos:[11.1, 50.3, 77.8, 1] }, mahkota:{ n:'Mahkota zaitun', lv:8, pos:[27.8, 9.7, 44.4, 0] }
+  syal:{ n:'Syal Maung', lv:1, slot:'leher', pos:[22, 55.5, 56] }, tas:{ n:'Tas kecil', lv:2, slot:'badan', pos:[34.5, 66, 31] }, ikat:{ n:'Ikat JUARA', lv:3, slot:'kepala', pos:[24, 20.5, 54] },
+  kacamata:{ n:'Kacamata', lv:4, slot:'mata', pos:[27.2, 37.4, 44.5] }, lentera:{ n:'Lentera', lv:5, slot:'tangan', pos:[72.8, 69.7, 16.1] }, topi:{ n:'Topi petualang', lv:6, slot:'kepala', pos:[21, 4, 58] },
+  jubah:{ n:'Jubah pahlawan', lv:7, slot:'punggung', pos:[11.1, 50.3, 77.8] }, mahkota:{ n:'Mahkota zaitun', lv:8, slot:'kepala', pos:[32, 17, 36] }
 };
-const JHEAD = { ikat:1, kacamata:1, topi:1, mahkota:1 };
+/* Slots, back to front. One item per slot; different slots combine freely. */
+const JSLOTS = [['punggung', 'Punggung'], ['badan', 'Badan'], ['leher', 'Leher'], ['mata', 'Mata'], ['kepala', 'Kepala'], ['tangan', 'Tangan']];
+/* Head items follow the ears, glasses follow the eyes: per-face shift in px of the 390 px picture */
+const JFACE_DY = { kaget:-10, peduli:-10, ngantuk:-6 }, JEYE_DY = { kaget:-7, dengkur:-7, ngantuk:5 };
+/* Worn items as { slot: item }. Accepts the old single-item string ('syal', 'tidur') */
+function jWear(w) {
+  if (!w) return {};
+  if (typeof w === 'string') return JACC[w] ? { [JACC[w].slot]:w } : {};
+  const o = {}; JSLOTS.forEach(([s]) => { if (w[s] && JACC[w[s]] && JACC[w[s]].slot === s) o[s] = w[s]; }); return o;
+}
+const jTidur = J => !!(J && (J.tidur || J.wear === 'tidur'));
 const jimonFace = f => jimg('jimon/ekspresi/e_' + f + '.webp');
 function jimonDirt(id) {
   id = id || CUR; const J = pget(id, 'jlb:jimon', {}) || {}, days = pget(id, 'jlb:day', {}), tk = todayK();
@@ -136,13 +147,31 @@ function jimonDirt(id) {
   }
   return miss;
 }
-/* A Jimon picture with an accessory layer. size = width in px */
+/* A Jimon picture with accessory layers. o.wear = { slot: item } (or an old single item). size = width in px */
 function jimonHTML(o = {}) {
-  const face = o.face || 'senang', wear = o.wear, a = wear && JACC[wear] && !o.plain ? JACC[wear] : null, f = face === 'dengar' && JHEAD[wear] ? 'senang' : face;
+  const W = o.plain ? {} : jWear(o.wear), face = o.face || 'senang', f = face === 'dengar' && (W.kepala || W.mata) ? 'senang' : face;
   const w = o.w || 180, h = Math.round(w * 390 / 360);
-  const layer = x => `<img class="jm-acc" src="${jimg('jimon/hiasan/a_' + wear + '.webp')}" alt="" style="left:${x[0]}%;top:${x[1]}%;width:${x[2]}%" loading="lazy" decoding="async">`;
-  return `<span class="jimon ${o.cls || ''}" style="width:${w}px;height:${h}px">${a && a.pos[3] ? layer(a.pos) : ''}<img class="jm-face" src="${jimonFace(f)}" alt="${esc(o.alt || 'Jimon')}" width="${w}" height="${h}" decoding="async">${o.blink ? `<img class="jm-blink" src="${jimonFace('kedip')}" alt="" decoding="async">` : ''}${a && !a.pos[3] ? layer(a.pos) : ''}</span>`;
+  const layer = k => { const p = JACC[k].pos, dy = (k === 'kacamata' ? JEYE_DY[f] || 0 : JACC[k].slot === 'kepala' ? JFACE_DY[f] || 0 : 0) / 3.9;
+    return `<img class="jm-acc" src="${jimg('jimon/hiasan/a_' + k + '.webp')}" alt="" style="left:${p[0]}%;top:${(p[1] + dy).toFixed(1)}%;width:${p[2]}%" loading="lazy" decoding="async">`; };
+  const back = W.punggung ? layer(W.punggung) : '', front = JSLOTS.filter(([s]) => s !== 'punggung' && W[s]).map(([s]) => layer(W[s])).join('');
+  return `<span class="jimon ${o.cls || ''}" style="width:${w}px;height:${h}px">${back}<img class="jm-face" src="${jimonFace(f)}" alt="${esc(o.alt || 'Jimon')}" width="${w}" height="${h}" decoding="async">${o.blink ? `<img class="jm-blink" src="${jimonFace('kedip')}" alt="" decoding="async">` : ''}${front}</span>`;
 }
+
+/* ---- Jimon's voice: recorded clips in img/jlb/jimon/suara/. One clip at a time; a switch on this device turns it off. ---- */
+let JAU = null, JSEQ = [];
+const jsoundOn = () => store.get('jsound', true) !== false;
+function jvoice(id, then) {
+  if (!id || !jsoundOn()) return;
+  try { if (JAU) { JAU.onended = null; JAU.pause(); } JAU = new Audio(jimg('jimon/suara/' + id + '.mp3'));
+    JAU.onended = () => { JAU = null; if (then) then(); }; JAU.play().catch(() => {}); } catch (e) {}
+}
+function jvoiceSeq(ids) { const list = ids.slice(); const nx = () => { const id = list.shift(); if (id) jvoice(id, () => setTimeout(nx, 250)); }; nx(); }
+function jhush() { if (JAU) { JAU.onended = null; JAU.pause(); JAU = null; } }
+const jpick = a => a[Math.floor(Math.random() * a.length)];
+const jsoundBtn = () => `<button type="button" class="jsnd" data-jsnd aria-pressed="${jsoundOn()}" aria-label="${jsoundOn() ? 'Matikan suara Jimon' : 'Nyalakan suara Jimon'}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/>${jsoundOn() ? '<path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/>' : '<path d="M17 9l5 6M22 9l-5 6"/>'}</svg></button>`;
+document.addEventListener('click', e => { const b = e.target.closest('[data-jsnd]'); if (!b) return; store.set('jsound', !jsoundOn()); if (!jsoundOn()) jhush();
+  document.querySelectorAll('[data-jsnd]').forEach(x => { x.outerHTML = jsoundBtn(); }); if (jsoundOn()) jvoice('meong_2'); });
+addEventListener('hashchange', jhush);
 
 /* ---- small UI helpers ---- */
 const jbtn = (label, attrs = '', cls = '') => `<button class="jb ${cls}" ${attrs}>${label}</button>`;
@@ -204,9 +233,9 @@ Object.assign(RENDER, {
   hijriah:() => jlazy(['rekap'], 'hijriah', () => renderHijriah()),
   keluarga:() => jlazy(['rekap'], 'keluarga', () => renderKeluarga()),
   peti:() => jlazy(['kids'], 'peti', () => renderPeti()),
-  ortu:() => jlazy(['kids'], 'ortu', () => renderOrtu()),
+  ortu:() => jlazy(['kids', 'soal', 'learn'], 'ortu', () => renderOrtu()),
   jimon:() => jlazy(['kids', 'jimon'], 'jimon', () => renderJimonChat()),
-  belajar:() => jlazy(['learn'], 'belajar', () => renderBelajar())
+  belajar:() => jlazy(['soal', 'learn'], 'belajar', () => renderBelajar())
 });
 (function addViews() {
   const main = document.querySelector('main');
@@ -224,7 +253,7 @@ Object.assign(RENDER, {
 
 /* ---- sync: merge per day so two phones never overwrite each other ---- */
 function jlbMerge(k, local, remote) {
-  if (!/^p:[^:]+:jlb:(day|learn|peti|roda|jalan)$/.test(k)) return undefined;
+  if (!/^p:[^:]+:jlb:(day|learn|learn2|peti|roda|jalan)$/.test(k)) return undefined;
   if (!local || !remote || typeof local !== 'object' || typeof remote !== 'object') return undefined;
   const m = Object.assign({}, local);
   Object.keys(remote).forEach(d => { const a = m[d], b = remote[d]; if (!a || ((b && b.at) || 0) >= ((a && a.at) || 0)) m[d] = b; });

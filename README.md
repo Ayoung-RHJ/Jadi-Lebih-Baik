@@ -20,11 +20,13 @@ Keep it on the same Netlify site address so everyone's saved data (browser stora
 - `js/player.js`: session player
 - `js/workouts.js`: quick workout, My workouts and the builder
 - `js/boot.js`: welcome popup, start-up, service worker registration
+- `js/jlb_gerak.js`: kids' Gerak tab (Gerak bersama Jimon) and Jimon as the kids' coach inside the session player (loaded with the page)
 - `js/jlb_core.js`: JLB shared code: day records, prayer times, XP and levels, Peti Jumat, Jimon picture and dust, new tabs and routes, sync merge
 - `js/jlb_adult.js`: Taman, Amal, habit detail, Saya, Perjalanan, program 40 hari, Mujahadah (loaded on demand)
 - `js/jlb_kids.js`: kids' Beranda, Misi, Kamar Jimon, Peti Jumat, Ruang Orang Tua (loaded on demand)
 - `js/jlb_jimon.js`: Jimon Pintar chat, offline, answers only from checked content (loaded on demand)
-- `js/jlb_learn.js`: Peta Belajar, lessons, kisah, Roda Ilmu (loaded on demand)
+- `js/jlb_learn.js`: Belajar Musim Baru (5 pulau, steps, unit and island exams), Kisah Pilihan, Roda Ilmu (loaded on demand)
+- `js/jlb_soal.js`: the 250 new approved questions (QB2), 5 questions per step (STEPQ), spare questions (CADQ) and the 10 Kisah Pilihan stories, generated from the approved Lembar Periksa (loaded on demand)
 - `js/jlb_rekap.js`: Rekap, Hijriah and Ramadan, Keluarga (loaded on demand)
 - `js/jlb_ayat.json`: Arabic and Kemenag translation for the ayat and hadith in JLB (from quran-json / quranenc and hadith-api). Never type Arabic by hand.
 - `css/jlb.css`: JLB styles
@@ -64,8 +66,8 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - To change a reminder, edit `js/dalil_data.js`, or send the change and it will be regenerated from the sources.
 
 ## JLB release notes
-- **Version number.** Every script and stylesheet link ends in `?v=jlb6`, and `sw.js` has `VER = 'jlb6'`.
-  When you change any js or css file, change it to the next number (`jlb7`) everywhere (index.html, sw.js `VER` and `PRE`, and `JLB_VER` in `js/jlb_core.js`).
+- **Version number.** Every script and stylesheet link ends in `?v=jlb7`, and `sw.js` has `VER = 'jlb7'`.
+  When you change any js or css file, change it to the next number (`jlb8`) everywhere (index.html, sw.js `VER` and `PRE`, and `JLB_VER` in `js/jlb_core.js`).
   Otherwise phones keep the old file for up to a week.
 - **New keys** (all per person, `corner3:p:<id>:jlb:*`): `day` (amaliyah, habits, missions, berhalangan, per date),
   `habits`, `set` (rawatib, city), `learn`, `roda`, `peti`, `jalan`, `40`, `jimon`, `ortu`, `chat`, `chatn`, `mjh`. `day`, `learn`, `peti`, `roda` and `jalan` merge per entry when syncing.
@@ -81,3 +83,16 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - **Amal order and slots.** Every amal in `HABITS` (`js/jlb_adult.js`) has a time slot `t` (malam, subuh, pagi, siang, sore, maghrib, isya). Lists follow the day; Taman starts at the current slot.
 - **New icons.** An amal can name an icon that is not uploaded yet (`ic`) with a fallback (`fb`). Upload the new picture to `img/jlb/ikon/` and it appears without a code change.
 - **Puasa sunnah** comes from `dayInfo()` in `js/calendar.js` (Senin, Kamis, Ayyamul Bidh, Arafah, Tasu'a, Asyura, 6 Syawal). A tick is saved as amal `puasa` and also in the Jurnal Sehat Kita fasting log. Kids get it only as the "Belajar puasa" mission, switched on by a parent.
+
+## jlb7 (Musim Baru)
+- **Belajar Musim Baru.** 5 pulau of 2 units. A step has 5 questions (wrong answers come back at the end), +5 XP; replaying a finished step gives +5 XP once a day.
+  Unit exam: 20 questions from the unit (steps + spares), Mumtaz (90%+) +10 XP, perfect +5. Island exam: 30 questions from both units, Mumtaz +30, perfect +10.
+  Each exam can be tried once a day. The next island opens after the island exam is Mumtaz, at the earliest 7 days after the previous island opened.
+  Parents can open or lock an island in Ruang Orang Tua (`isl` in `jlb:ortu`). Progress is `jlb:learn2` (per-entry merge); the old `jlb:learn` XP is kept.
+- **Kisah Pilihan.** 10 approved akhlak stories (`KISAHP` in `js/jlb_soal.js`), +5 XP the first time each, stored as `k:<id>` in `jlb:learn2`.
+- **Jimon's voice.** 58 recorded lines (Google AI Studio TTS, cut and levelled) plus meow, purr, giggle and yawn in `img/jlb/jimon/suara/`.
+  `jvoice(id)` in `js/jlb_core.js` plays one clip at a time; the speaker button turns it off on this device (`corner3:jsound`). The clip names match the scripts in the JLB Musim Baru doc.
+- **Jimon Pintar** (`js/jlb_jimon.js`) is a pair table: slang clean-up, safety rules first, then answers taught by parents (Ajari Jimon, `ajar` in `jlb:ortu`), follow-ups, and the closest pair. Islamic lines only from the Lembar Periksa.
+- **Gerak bersama Jimon.** Kids' Gerak tab with 3 adventures (10, 15, 20 min) built by `playSession` (bodyweight only). In the player, kids get Jimon's poses (`img/jlb/jimon/pelatih/`) and recorded lines instead of the device voice.
+- **Accessories** now go one per slot (kepala, mata, leher, badan, punggung, tangan); `wear` in `jlb:jimon` is `{ slot: item }` (an old single item still works). Positions and per-face shifts are `JACC`, `JFACE_DY`, `JEYE_DY` in `js/jlb_core.js`.
+- **Picture cache.** `sw.js` caches pictures and sounds forever under `IMG`. jlb7 changed pictures that kept their names (Jimon's accessories), so `IMG` is now `jlb-img-v2`. Do the same whenever a picture or sound is replaced under the same name.

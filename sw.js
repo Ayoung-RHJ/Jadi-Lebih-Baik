@@ -3,14 +3,14 @@
    - js/css/json: stale-while-revalidate (files carry ?v=, so a new release is a new URL)
    - pictures and fonts: cache first
    - anything else (Supabase sync, other sites): never touched
-   Bump VER on every release. */
-const VER = 'jlb6';
-const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v1';
+   Bump VER on every release. Bump IMG when a picture or sound keeps its name but changes (jlb7: Jimon accessories). */
+const VER = 'jlb7';
+const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v2';
 const PRE = ['./', 'index.html', 'manifest.webmanifest',
-  'css/app.css?v=jlb6', 'css/jlb.css?v=jlb6',
-  'js/core.js?v=jlb6', 'js/sync.js?v=jlb6', 'js/figures.js?v=jlb6', 'js/data.js?v=jlb6', 'js/engine.js?v=jlb6',
-  'js/calendar.js?v=jlb6', 'js/dalil_data.js?v=jlb6', 'js/journal.js?v=jlb6', 'js/ui.js?v=jlb6', 'js/player.js?v=jlb6',
-  'js/handwrap.js?v=jlb6', 'js/workouts.js?v=jlb6', 'js/jlb_core.js?v=jlb6', 'js/boot.js?v=jlb6',
+  'css/app.css?v=jlb7', 'css/jlb.css?v=jlb7',
+  'js/core.js?v=jlb7', 'js/sync.js?v=jlb7', 'js/figures.js?v=jlb7', 'js/data.js?v=jlb7', 'js/engine.js?v=jlb7',
+  'js/calendar.js?v=jlb7', 'js/dalil_data.js?v=jlb7', 'js/journal.js?v=jlb7', 'js/ui.js?v=jlb7', 'js/player.js?v=jlb7',
+  'js/handwrap.js?v=jlb7', 'js/workouts.js?v=jlb7', 'js/jlb_core.js?v=jlb7', 'js/jlb_gerak.js?v=jlb7', 'js/boot.js?v=jlb7',
   'img/jlb/brand/emblem-96.webp'];
 
 self.addEventListener('install', e => {
