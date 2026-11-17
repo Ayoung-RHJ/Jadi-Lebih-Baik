@@ -1,13 +1,48 @@
 /* =========================================================
    JLB kids (6-12): Beranda, Misi, Peti Jumat, cat room, parents' corner
    ========================================================= */
+/* p = kelompok, t = waktu (SLOTS), h = catatan untuk orang tua, auto = tercentang sendiri dari Gerak/Belajar.
+   Ibadah missions are Islamic content: wording reviewed by the ustadz (Lembar Periksa bagian 12). */
 const MISSIONS = {
-  doa_bangun:{ n:'Doa bangun tidur', ic:'doa_bangun' }, sikat:{ n:'Sikat gigi pagi dan malam', ic:'sikat_gigi' }, minum:{ n:'Minum air 6 gelas', ic:'minum' },
-  rapikan:{ n:'Rapikan tempat tidur', ic:'rapikan' }, bantu:{ n:'Bantu pekerjaan rumah', ic:'bantu_rumah' }, baca:{ n:'Membaca atau Iqro 1 halaman', ic:'baca' },
-  baik:{ n:'Berbuat baik kepada saudara', ic:'berbuat_baik' }, jalan:{ n:'Main di luar 20 menit', ic:'jalan' }, tidur:{ n:'Tidur tepat waktu', ic:'tidur' },
-  telepon:{ n:'Telepon kakek atau nenek', ic:'telepon' }, puasa:{ n:'Belajar puasa', ic:'belajar_puasa', fb:'puasa' }
+  dzikir_pagi:{ n:'Dzikir pagi bersama Ayah/Ibu', ic:'dzikir', p:'ibadah', t:'subuh', h:'Dzikir pagi yang pendek, dibaca bersama setelah Subuh.' },
+  dhuha:{ n:'Sholat Dhuha 2 rakaat', ic:'dhuha', p:'ibadah', t:'pagi', h:'Setelah matahari naik sampai sebelum Dzuhur. Di hari sekolah bisa saat istirahat.' },
+  sedekah:{ n:'Sedekah atau berbagi', ic:'sedekah', p:'ibadah', t:'siang', h:'Uang, makanan, mainan, atau senyuman kepada orang lain.' },
+  hafalan:{ n:'Hafalan 1 ayat', ic:'surat_harian', fb:'tilawah', p:'ibadah', t:'maghrib', h:'Menghafal atau mengulang 1 ayat bersama Ayah atau Ibu.' },
+  wudhu_tidur:{ n:'Wudhu dan doa sebelum tidur', ic:'wudhu', p:'ibadah', t:'isya', h:'Tidur dalam keadaan suci, lalu membaca doa sebelum tidur.' },
+  istighfar:{ n:'Istighfar sebelum tidur', ic:'istighfar', p:'ibadah', t:'isya', h:'Membaca Astaghfirullah beberapa kali sebelum tidur.' },
+  puasa:{ n:'Belajar puasa', ic:'belajar_puasa', fb:'puasa', p:'ibadah', t:'subuh', h:'Hanya muncul di hari puasa sunnah. Boleh setengah hari.' },
+  baca:{ n:'Membaca atau Iqro 1 halaman', ic:'baca', p:'ilmu', t:'maghrib' },
+  pr:{ n:'Kerjakan PR tepat waktu', ic:'belajar', p:'ilmu', t:'sore' },
+  belajar:{ n:'Belajar Seru 1 langkah', ic:'ilmu', p:'ilmu', t:'sore', auto:'#belajar', h:'Tercentang sendiri setelah anak menyelesaikan 1 langkah atau ujian di Belajar Seru.' },
+  kisah:{ n:'Dengar kisah Nabi', ic:'kajian', p:'ilmu', t:'isya' },
+  buku:{ n:'Baca buku cerita 10 menit', ic:'cerita_anak', p:'ilmu', t:'isya' },
+  rapikan:{ n:'Rapikan tempat tidur', ic:'rapikan', p:'akhlak', t:'subuh' },
+  baik:{ n:'Berbuat baik kepada saudara', ic:'berbuat_baik', p:'akhlak', t:'siang' },
+  santun:{ n:'Tidak berkata kasar hari ini', ic:'muhasabah', p:'akhlak', t:'siang' },
+  salam:{ n:'Ucapkan salam saat masuk rumah', ic:'peluk_keluarga', p:'akhlak', t:'siang' },
+  bantu:{ n:'Bantu pekerjaan rumah', ic:'bantu_rumah', p:'akhlak', t:'sore' },
+  telepon:{ n:'Telepon kakek atau nenek', ic:'telepon', p:'akhlak', t:'sore' },
+  makan_hp:{ n:'Makan bersama tanpa HP', ic:'makan_bersama', fb:'tanpa_hp', p:'akhlak', t:'maghrib' },
+  peluk:{ n:'Peluk Ayah dan Ibu', ic:'ngobrol_pasangan', fb:'berbuat_baik', p:'akhlak', t:'isya' },
+  doa_bangun:{ n:'Doa bangun tidur', ic:'doa_bangun', p:'jasad', t:'subuh' },
+  sikat:{ n:'Sikat gigi pagi dan malam', ic:'sikat_gigi', p:'jasad', t:'subuh' },
+  sarapan:{ n:'Sarapan sehat', ic:'sarapan', p:'jasad', t:'pagi' },
+  minum:{ n:'Minum air 6 gelas', ic:'minum', p:'jasad', t:'siang' },
+  gerak:{ n:'Gerak bersama Jimon', ic:'ninja', p:'jasad', t:'sore', auto:'#home', h:'Tercentang sendiri setelah anak menyelesaikan 1 sesi Gerak bersama Jimon.' },
+  jalan:{ n:'Main di luar 20 menit', ic:'jalan', p:'jasad', t:'sore' },
+  tidur:{ n:'Tidur tepat waktu', ic:'tidur', p:'jasad', t:'isya' }
 };
-const ortu = id => Object.assign({ cap:240, chat:true, limit:10, missions:Object.keys(MISSIONS).filter(m => m !== 'telepon' && m !== 'puasa'), marks:{} }, pget(id || CUR, 'jlb:ortu', {}) || {});
+const KPIL = [['ibadah', 'Ibadah'], ['ilmu', 'Ilmu'], ['akhlak', 'Akhlak'], ['jasad', 'Jasad'], ['own', 'Misi keluarga']];
+const KSLOT = { subuh:'Bangun pagi', pagi:'Pagi', siang:'Siang', sore:'Sore', maghrib:'Maghrib', isya:'Sebelum tidur' };
+const KSLOT_K = Object.keys(KSLOT);
+const KDEF_MIS = ['doa_bangun', 'sikat', 'minum', 'rapikan', 'bantu', 'baca', 'baik', 'jalan', 'tidur'];   // the 9 on before jlb8; new ones start off
+const ortu = id => Object.assign({ cap:240, chat:true, limit:10, missions:KDEF_MIS.slice(), marks:{}, own:[] }, pget(id || CUR, 'jlb:ortu', {}) || {});
+/* A mission by id: built-in, or one the family added in Ruang Orang Tua */
+const kmDef = (id, O) => MISSIONS[id] || (() => { const x = ((O || ortu()).own || []).find(o => o.id === id); return x ? { n:x.n, ic:null, p:'own', t:x.t || 'sore', own:1 } : null; })();
+const kmIcon = (m, sz = 54) => m.ic ? `<img src="${jimg('ikon/' + m.ic + '.webp')}" alt="" width="${sz}" height="${sz}" loading="lazy"${m.fb ? ` onerror="this.onerror=null;this.src='${jimg('ikon/' + m.fb + '.webp')}'"` : ''}>` : `<img src="${jimg('anak/star_jar.webp')}" alt="" width="${sz}" height="${sz}" loading="lazy">`;
+const kidMisList = O => { O = O || ortu(); return kidMissionsToday(O.missions.filter(m => kmDef(m, O))); };
+/* Roda Ilmu opens when half of today's missions are done (at most 5 needed) */
+const kidMisGate = () => { const l = kidMisList(), d = dayOf(todayK()), done = l.filter(m => (d.m || {})[m]).length, need = Math.min(5, Math.ceil(l.length / 2)); return { ok:done >= need, done, need }; };
 const BADGES_K = [
   ['subuh7', 'Subuh 7 hari', 'emas', 'sholat'], ['lengkap7', 'Sholat lengkap 7 hari', 'emas', 'sunnah'], ['doabangun', 'Doa bangun 14 kali', 'perak', 'doa_bangun'],
   ['pembantu', 'Pembantu hebat', 'perunggu', 'bantu_rumah'], ['iqro', 'Iqro 10 hari', 'perak', 'baca'], ['fatihah', 'Hafal Al-Fatihah', 'perak', 'tilawah'],
@@ -48,7 +83,7 @@ function renderKidHome() {
   <section class="jcard" style="background:var(--jkidcard)"><div class="jrow sp"><h2>Lentera sholat</h2><span class="jpill">${lit} dari 5</span></div><div class="jlant">${lan}</div>
     <span class="jmut">Nyalakan lentera setelah sholat. Setiap lentera +10 XP.</span></section>
   <div class="jgrid2">
-    <a class="jcard" href="#amal" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('rapikan')}<b>Misi hari ini</b><span class="jmut">${Object.keys(d.m || {}).length} selesai</span></a>
+    <a class="jcard" href="#amal" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('rapikan')}<b>Misi hari ini</b><span class="jmut">${(() => { const l = kidMisList(); return l.filter(m => (d.m || {})[m]).length + ' dari ' + l.length; })()} selesai</span></a>
     <a class="jcard" href="#belajar" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('ilmu')}<b>Belajar Seru</b><span class="jmut">Lanjutkan petualangan</span></a>
     <a class="jcard" href="#home" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('ninja')}<b>Gerak bersama Jimon</b><span class="jmut">+10 XP tiap sesi</span></a>
     <a class="jcard" href="#jimon" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('telepon')}<b>Ngobrol dengan Jimon</b><span class="jmut">Jimon menunggumu</span></a></div>
@@ -58,15 +93,23 @@ function renderKidHome() {
 
 /* ---------------- Misi (papan stiker) ---------------- */
 function renderMisi() {
-  const d = dayOf(todayK()), list = kidMissionsToday(ortu().missions.filter(m => MISSIONS[m]));
-  const n = list.filter(m => (d.m || {})[m]).length;
+  const O = ortu(), d = dayOf(todayK()), list = kidMisList(O), dm = d.m || {};
+  const n = list.filter(m => dm[m]).length;
+  let sn = slotNow(new Date()); if (!KSLOT[sn]) sn = 'subuh';
+  const i0 = KSLOT_K.indexOf(sn), order = KSLOT_K.slice(i0).concat(KSLOT_K.slice(0, i0));
+  const card = m => { const M = kmDef(m, O), on = !!dm[m];
+    return `<button data-kmis="${m}" aria-pressed="${on}"${M.auto && !on ? ` data-kgo="${M.auto}"` : ''}>${kmIcon(M)}${esc(M.n)}${M.auto && !on ? '<small class="jmut">Selesaikan di aplikasi</small>' : ''}</button>`; };
+  const groups = order.map((t, j) => { const l = list.filter(m => kmDef(m, O).t === t); if (!l.length) return '';
+    const past = j > 0 && KSLOT_K.indexOf(t) < i0, k = l.filter(m => dm[m]).length;
+    return `<div class="jrow sp jmslot${past ? ' past' : ''}"><h2>${KSLOT[t]}</h2><span class="jpill">${t === sn ? 'Sekarang · ' : past ? 'Tadi · ' : ''}${k}/${l.length}</span></div><div class="jstk">${l.map(card).join('')}</div>`; }).join('');
   $('#v-amal').innerHTML = `<div class="jw jkidw"><div class="jrow sp" style="padding-top:8px"><h1>Misi hari ini</h1><span class="jpill">${n} dari ${list.length}</span></div>
     <div class="jbar"><i style="width:${list.length ? n / list.length * 100 : 0}%"></i></div>
-    <div class="jstk">${list.map(m => { const on = !!(d.m || {})[m]; return `<button data-kmis="${m}" aria-pressed="${on}"><img src="${jimg('ikon/' + MISSIONS[m].ic + '.webp')}" alt="" width="54" height="54" loading="lazy"${MISSIONS[m].fb ? ` onerror="this.onerror=null;this.src='${jimg('ikon/' + MISSIONS[m].fb + '.webp')}'"` : ''}>${esc(MISSIONS[m].n)}</button>`; }).join('')}</div>
+    ${groups || '<p class="jmut">Belum ada misi. Minta Ayah atau Ibu memilih misi di Ruang Orang Tua.</p>'}
     <p class="jmut">Setiap misi +5 XP. Selesaikan 1 misi untuk bisa memandikan Jimon.</p></div>`;
 }
 
 /* ---------------- Kamar Jimon (Saya anak) ---------------- */
+let OWNT = 'sore';
 let KPET = 0, KBATH = false, KPOP = null, KVOICE = '';
 function renderKamar() {
   if (!jget('jimon', {}).since) jset('jimon', Object.assign({}, jget('jimon', {}), { since:todayK() }));
@@ -142,7 +185,14 @@ function renderOrtu() {
     <a class="jcard" href="#me" style="text-decoration:none;color:inherit"><h2>Profil, sinkron keluarga, PIN</h2><span class="jmut">Masukkan kode keluarga di perangkat ini, ubah profil anak, atau pasang PIN profil.</span></a>
     <section class="jcard"><h2>Tampilan</h2><div class="jtick">${[['anak', 'Anak'], ['dewasa', 'Dewasa']].map(([v, t]) => `<button class="jchip" data-omode="${v}" aria-pressed="${(v === 'anak') === isKidP()}">${t}</button>`).join('')}</div><span class="jmut">Hanya Ayah atau Ibu yang bisa mengganti tampilan anak di bawah 13 tahun.</span></section>
     <section class="jcard"><h2>Batas waktu main per pekan</h2><div class="jtick">${[120, 180, 240, 300, 360].map(m => `<button class="jchip" data-ocap="${m}" aria-pressed="${O.cap === m}">${m / 60} jam</button>`).join('')}</div></section>
-    <section class="jcard"><h2>Misi harian</h2>${Object.keys(MISSIONS).map(m => `<label class="jrow sp"><span>${MISSIONS[m].n}</span><input type="checkbox" data-omis="${m}" ${O.missions.includes(m) ? 'checked' : ''} style="width:24px;height:24px"></label>`).join('')}</section>
+    <section class="jcard"><div class="jrow sp"><h2>Misi harian</h2><span class="jpill">${O.missions.filter(m => kmDef(m, O)).length} aktif</span></div>
+      <span class="jmut">Pilih misi untuk anak ini. Misi muncul di layar anak sesuai waktunya. Mulailah dari sedikit, lalu tambah pelan-pelan.</span>
+      ${KPIL.map(([p, pn]) => { const ids = p === 'own' ? (O.own || []).map(x => x.id) : Object.keys(MISSIONS).filter(m => MISSIONS[m].p === p); if (!ids.length && p !== 'own') return '';
+        return `<h3 class="jomh">${pn}</h3>${ids.map(m => { const M = kmDef(m, O); return `<label class="jrow sp jomis"><span class="jrow" style="gap:10px;flex-wrap:nowrap">${kmIcon(M, 36)}<span><b>${esc(M.n)}</b><br><span class="jmut">${KSLOT[M.t]}${M.h ? ' · ' + esc(M.h) : ''}</span></span></span><span class="jrow" style="gap:8px;flex-wrap:nowrap">${M.own ? jbtn('Hapus', 'data-oowndel="' + m + '"', 'ghost') : ''}<input type="checkbox" data-omis="${m}" ${O.missions.includes(m) ? 'checked' : ''} style="width:24px;height:24px"></span></label>`; }).join('')}`; }).join('')}
+      <h3 class="jomh">Tambah misi sendiri</h3>
+      <label for="oOwnN"><b>Nama misi</b></label><input id="oOwnN" class="inp" maxlength="40" placeholder="contoh: Siram tanaman" autocomplete="off">
+      <span class="jmut"><b>Waktunya</b></span><div class="jtick">${KSLOT_K.map(t => `<button class="jchip" data-oownt="${t}" aria-pressed="${OWNT === t}">${KSLOT[t]}</button>`).join('')}</div>
+      ${jbtn('Tambah misi', 'data-oownadd', 'navy block')}<span class="jmut">Paling banyak 10 misi keluarga. Setiap misi tetap +5 XP.</span></section>
     <section class="jcard"><h2>Tandai pencapaian</h2>${[['fatihah', 'Sudah hafal Al-Fatihah'], ['puasa', 'Puasa pertama'], ['ramadan', 'Ramadan penuh (sesuai kemampuan)']].map(([k, t]) => `<label class="jrow sp"><span>${t}</span><input type="checkbox" data-omark="${k}" ${O.marks[k] ? 'checked' : ''} style="width:24px;height:24px"></label>`).join('')}</section>
     <section class="jcard"><h2>Belajar: akses pulau</h2><span class="jmut">Aturan biasa: pulau berikutnya terbuka setelah ujian pulau Mumtaz, paling cepat 7 hari setelah pulau sebelumnya dibuka. Di sini Ayah atau Ibu bisa membuka lebih awal atau mengunci.</span>
       ${typeof islandState === 'function' ? ISL.map((x, i) => { const st = islandState(i), ov = (O.isl || {})[i + 1];
@@ -160,12 +210,14 @@ const setOrtu = patch => { const O = Object.assign({}, pget(CUR, 'jlb:ortu', {})
 
 /* ---------------- events ---------------- */
 document.addEventListener('click', async e => {
-  const t = e.target.closest('[data-klan],[data-kmis],[data-kpet],[data-kbath],[data-kwear],[data-kpop],[data-kpeti],[data-oopen],[data-olock],[data-oreq],[data-ocap],[data-omode],[data-oisl],[data-oajar],[data-oajdel]');
+  const t = e.target.closest('[data-klan],[data-kmis],[data-kpet],[data-kbath],[data-kwear],[data-kpop],[data-kpeti],[data-oopen],[data-olock],[data-oreq],[data-ocap],[data-omode],[data-oisl],[data-oajar],[data-oajdel],[data-oownt],[data-oownadd],[data-oowndel]');
   if (!t || t.disabled) return;
   const ds = t.dataset, tk = todayK();
   if (ds.klan) { dayPut(tk, d => { d.s = d.s || {}; const s = Object.assign({}, d.s[ds.klan] || {}); s.f = s.f ? 0 : 1; d.s[ds.klan] = s; });
     if (dayOf(tk).s[ds.klan].f) { jtoast('Lentera ' + PRN[ds.klan] + ' menyala! +10 XP'); checkLevelUp(); } return renderKidHome(); }
-  if (ds.kmis) { dayPut(tk, d => { d.m = Object.assign({}, d.m || {}); if (d.m[ds.kmis]) delete d.m[ds.kmis]; else d.m[ds.kmis] = 1; });
+  if (ds.kgo) { jtoast(ds.kgo === '#home' ? 'Misi ini tercentang sendiri setelah sesi Gerak selesai' : 'Misi ini tercentang sendiri setelah 1 langkah Belajar Seru'); location.hash = ds.kgo; return; }
+  if (ds.kmis) { if (MISSIONS[ds.kmis] && MISSIONS[ds.kmis].auto && (dayOf(tk).m || {})[ds.kmis]) return;
+    dayPut(tk, d => { d.m = Object.assign({}, d.m || {}); if (d.m[ds.kmis]) delete d.m[ds.kmis]; else d.m[ds.kmis] = 1; });
     if (ds.kmis === 'puasa' && typeof setFast === 'function') setFast(tk, (dayOf(tk).m || {}).puasa ? 'half' : '');
     if ((dayOf(tk).m || {})[ds.kmis]) { jtoast('Misi selesai! +5 XP'); checkLevelUp(); } return renderMisi(); }
   if (ds.kpet !== undefined) { if (jimonDirt() || KBATH) return; KPET++; if (KPET % 2) jvoice(KPET % 6 === 5 ? 'tertawa' : 'dengkur'); renderKamar(); clearTimeout(window._kp); window._kp = setTimeout(() => { if (KPET % 2) { KPET++; if (document.body.dataset.view === 'saya') renderKamar(); } }, 1700); return; }
@@ -185,11 +237,16 @@ document.addEventListener('click', async e => {
   if (ds.oajar !== undefined && OUNLOCK) { const q = ($('#oAjQ').value || '').trim(), a = ($('#oAjA').value || '').trim(); if (!q || !a) { jtoast('Isi kedua kolom dulu ya.'); return; }
     setOrtu({ ajar:[{ q, a }].concat(ortu().ajar || []).slice(0, 40) }); jtoast('Jimon sudah belajar jawaban baru'); return renderOrtu(); }
   if (ds.oajdel !== undefined && OUNLOCK) { const A = (ortu().ajar || []).slice(); A.splice(Number(ds.oajdel), 1); setOrtu({ ajar:A }); return renderOrtu(); }
+  if (ds.oownt && OUNLOCK) { OWNT = ds.oownt; const v = ($('#oOwnN') || {}).value || ''; renderOrtu(); if ($('#oOwnN')) $('#oOwnN').value = v; return; }
+  if (ds.oownadd !== undefined && OUNLOCK) { const n = ($('#oOwnN').value || '').trim(), O = ortu(); if (!n) { jtoast('Tulis nama misinya dulu ya.'); return; }
+    if ((O.own || []).length >= 10) { jtoast('Sudah 10 misi keluarga. Hapus satu dulu.'); return; }
+    const id = 'own' + Date.now().toString(36); setOrtu({ own:(O.own || []).concat({ id, n, t:OWNT }), missions:O.missions.concat(id) }); jtoast('Misi baru ditambahkan'); return renderOrtu(); }
+  if (ds.oowndel && OUNLOCK) { const O = ortu(); setOrtu({ own:(O.own || []).filter(x => x.id !== ds.oowndel), missions:O.missions.filter(m => m !== ds.oowndel) }); return renderOrtu(); }
   if (ds.omode && OUNLOCK) { OUNLOCK = false; return setMode(CUR, ds.omode); }
 });
 document.addEventListener('change', e => {
   const t = e.target; if (!OUNLOCK) return;
-  if (t.dataset.omis) { const O = ortu(); setOrtu({ missions:t.checked ? O.missions.concat(t.dataset.omis) : O.missions.filter(m => m !== t.dataset.omis) }); }
+  if (t.dataset.omis) { const O = ortu(); setOrtu({ missions:t.checked ? O.missions.filter(m => m !== t.dataset.omis).concat(t.dataset.omis) : O.missions.filter(m => m !== t.dataset.omis) }); }
   else if (t.dataset.omark) { const O = ortu(); setOrtu({ marks:Object.assign({}, O.marks, { [t.dataset.omark]:t.checked }) }); }
   else if (t.dataset.ochat !== undefined) setOrtu({ chat:t.checked });
 });

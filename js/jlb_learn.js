@@ -308,7 +308,7 @@ function finishStep(it) {
   if (!e.done) { l2put(k, x => { x.done = 1; x.xp = 5; x.d = tk; }); LS.gain = 5; }
   else if (!(e.rp || {})[tk]) { l2put(k, x => { x.rp = Object.assign({}, x.rp || {}); x.rp[tk] = 5; }); LS.gain = 5; }
   else LS.gain = 0;
-  LS.phase = 'done'; jvoice('b_langkah'); bell && ding(); paintItem(it);
+  LS.phase = 'done'; kidAutoMis('belajar'); jvoice('b_langkah'); bell && ding(); paintItem(it);
 }
 function finishExam(it) {
   const tk = todayK(), k = it.kind === 'exam' ? 'e:u' + (it.u + 1) : 'b:' + (it.isl + 1), p = Math.round(LS.ok / LS.qs.length * 100), mum = p >= 90, perfect = LS.ok === LS.qs.length;
@@ -317,7 +317,7 @@ function finishExam(it) {
   l2put(k, x => { x.tries = Object.assign({}, x.tries || {}); x.tries[tk] = p; x.best = Math.max(x.best || 0, p);
     if (mum && !x.mum) { x.mum = 1; x.md = tk; x.xp = (x.xp || 0) + base; gain += base; }
     if (perfect && !x.perfect) { x.perfect = 1; x.xp = (x.xp || 0) + bonus; gain += bonus; } });
-  LS.gain = gain; LS.phase = 'done';
+  LS.gain = gain; LS.phase = 'done'; kidAutoMis('belajar');
   jvoice(!mum ? 'b_ulang' : perfect ? 'b_mumtaz' : 'b_lulus', mum && wasLast && !before.mum && it.isl < 4 ? () => jvoice('b_tunggu') : null);
   bell && ding(); paintItem(it);
 }
@@ -357,12 +357,12 @@ let RD = null;
 const RCAT = ['Doa', 'Sholat', 'Nabi', 'Sirah', 'Quran', 'Akhlak'];
 function renderRoda() {
   const tk = todayK(), R = jget('roda', {}), done = R[tk];
-  const misi = isKidP() ? (typeof ortu === 'function' ? kidMissionsToday(ortu().missions) : []) : [], d = dayOf(tk), allMisi = !misi.length || misi.every(m => (d.m || {})[m]);
+  const G = isKidP() && typeof kidMisGate === 'function' ? kidMisGate() : { ok:true }, allMisi = G.ok;
   if (!RD) RD = { rot:0, cat:null, q:null, pick:null };
   $('#v-belajar').innerHTML = `<div class="jw" style="background:#0F1D3D;color:#fff;margin-top:-12px;padding-top:12px;min-height:100vh">
     <div class="jrow">${back('#belajar', 'Tutup')}<h1 style="color:#fff">Roda Ilmu</h1></div><p style="opacity:.8">1 putaran hari ini · benar +5 XP, mencoba +2 XP</p>
     <div class="jpin"></div><div class="jwheel" style="transform:rotate(${RD.rot}deg)">${RCAT.map((c, i) => `<span style="transform:rotate(${30 + i * 60}deg) translateY(-105px)">${c}</span>`).join('')}</div>
-    ${done && !RD.q ? `<p class="note" style="color:#0F1D3D">Sudah diputar hari ini (${done.ok ? 'benar' : 'mencoba'}). Kembali besok ya!</p>` : !allMisi ? '<p class="note" style="color:#0F1D3D">Terbuka setelah semua misi hari ini selesai.</p>' : !RD.cat ? jbtn('PUTAR!', 'data-rspin', 'gold block') : ''}
+    ${done && !RD.q ? `<p class="note" style="color:#0F1D3D">Sudah diputar hari ini (${done.ok ? 'benar' : 'mencoba'}). Kembali besok ya!</p>` : !allMisi ? `<p class="note" style="color:#0F1D3D">Terbuka setelah ${G.need} misi hari ini selesai. Sekarang baru ${G.done}.</p>` : !RD.cat ? jbtn('PUTAR!', 'data-rspin', 'gold block') : ''}
     ${RD.q ? `<div class="jcard" style="color:var(--jink)"><span class="jmut">Kategori: ${RD.cat}</span><h2>${esc(RD.q.q)}</h2><div class="jopt">${RD.q.opts.map(o => `<button data-ropt="${esc(o)}" class="${RD.pick === o ? (o === RD.q.r ? 'ok' : 'no') : RD.pick && o === RD.q.r ? 'ok' : ''}" ${RD.pick ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>
       ${RD.pick ? `<b>${RD.pick === RD.q.r ? 'MasyaAllah, benar! +5 XP' : 'Terima kasih sudah mencoba! +2 XP'}</b>` : ''}</div>` : ''}</div>`;
 }

@@ -67,7 +67,7 @@ function jimonizePlayer() {
   PL.classList.add('jkidpl');
 }
 { const rs = renderStep; renderStep = function () { if (S) S._jv = 0; rs(); jimonizePlayer(); }; }
-{ const fs = finishSession; finishSession = function (complete) { fs(complete); if (jkidSes()) { S._fin = 1; jimonizePlayer(); const st = $('#plIn .coachline img.jcoach'); if (st) st.src = PELATIH(complete ? 'bintang' : 'lelah'); } }; }
+{ const fs = finishSession; finishSession = function (complete) { fs(complete); if (jkidSes()) { S._fin = 1; if (complete) kidAutoMis('gerak'); jimonizePlayer(); const st = $('#plIn .coachline img.jcoach'); if (st) st.src = PELATIH(complete ? 'bintang' : 'lelah'); } }; }
 { const cp = closePlayer; closePlayer = function () { jhush(); PL.classList.remove('jkidpl'); cp(); }; }
 /* The device voice is replaced by Jimon's recorded lines for kids; the written line still shows as a subtitle */
 { const sayDev = say; say = function (text, opt = {}) {

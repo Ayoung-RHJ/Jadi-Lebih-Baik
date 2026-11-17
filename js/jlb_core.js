@@ -3,7 +3,7 @@
    XP and levels, Jimon state, lazy modules, tabs and routes.
    All data lives in the same corner3:* storage and syncs like the rest.
    ========================================================= */
-const JLB_VER = 'jlb7';
+const JLB_VER = 'jlb8';
 const JIMG = 'img/jlb/';
 const PR = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
 const PRN = { subuh:'Subuh', dzuhur:'Dzuhur', ashar:'Ashar', maghrib:'Maghrib', isya:'Isya' };
@@ -193,6 +193,14 @@ function fastToday(id, date = new Date()) {
   const x = dayInfo(date); let f = x.fast.slice();
   if (f.includes('syawal') && syawalCount(id, date) >= 6 && !(dayOf(todayK(), id).a || {}).puasa) f = f.filter(k => k !== 'syawal');
   return f;
+}
+/* Missions that tick themselves (Gerak, Belajar) when the parent switched them on */
+function kidAutoMis(m) {
+  if (typeof isKidP !== 'function' || !isKidP()) return;
+  const O = pget(CUR, 'jlb:ortu', {}) || {}, tk = todayK();
+  if (!(O.missions || []).includes(m) || (dayOf(tk).m || {})[m]) return;
+  dayPut(tk, d => { d.m = Object.assign({}, d.m || {}); d.m[m] = 1; });
+  setTimeout(() => { jtoast(m === 'gerak' ? 'Misi Gerak bersama Jimon selesai! +5 XP' : 'Misi Belajar Seru selesai! +5 XP'); if (typeof checkLevelUp === 'function') checkLevelUp(); }, 2400);
 }
 const kidMissionsToday = list => list.filter(m => m !== 'puasa' || dayInfo(new Date()).fasting);
 function jtoast(t) { let el = $('#jToast'); if (!el) { el = document.createElement('div'); el.id = 'jToast'; el.className = 'jtoast'; el.setAttribute('role', 'status'); document.body.appendChild(el); } el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2200); }
