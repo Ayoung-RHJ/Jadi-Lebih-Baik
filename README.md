@@ -66,7 +66,7 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - To change a reminder, edit `js/dalil_data.js`, or send the change and it will be regenerated from the sources.
 
 ## JLB release notes
-- **Version number.** Every script and stylesheet link ends in `?v=jlb7`, and `sw.js` has `VER = 'jlb7'`.
+- **Version number.** Every script and stylesheet link ends in `?v=jlb8`, and `sw.js` has `VER = 'jlb8'`.
   When you change any js or css file, change it to the next number (`jlb8`) everywhere (index.html, sw.js `VER` and `PRE`, and `JLB_VER` in `js/jlb_core.js`).
   Otherwise phones keep the old file for up to a week.
 - **New keys** (all per person, `corner3:p:<id>:jlb:*`): `day` (amaliyah, habits, missions, berhalangan, per date),
@@ -96,3 +96,13 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - **Gerak bersama Jimon.** Kids' Gerak tab with 3 adventures (10, 15, 20 min) built by `playSession` (bodyweight only). In the player, kids get Jimon's poses (`img/jlb/jimon/pelatih/`) and recorded lines instead of the device voice.
 - **Accessories** now go one per slot (kepala, mata, leher, badan, punggung, tangan); `wear` in `jlb:jimon` is `{ slot: item }` (an old single item still works). Positions and per-face shifts are `JACC`, `JFACE_DY`, `JEYE_DY` in `js/jlb_core.js`.
 - **Picture cache.** `sw.js` caches pictures and sounds forever under `IMG`. jlb7 changed pictures that kept their names (Jimon's accessories), so `IMG` is now `jlb-img-v2`. Do the same whenever a picture or sound is replaced under the same name.
+
+## jlb8 (Misi anak)
+
+- **27 missions** in `MISSIONS` (`js/jlb_kids.js`), each with a group `p` (ibadah, ilmu, akhlak, jasad), a time `t` (subuh, pagi, siang, sore, maghrib, isya) and an optional note `h` for parents. Old mission ids are unchanged, so past ticks and XP stay.
+- **Defaults.** `KDEF_MIS` holds the 9 missions that were on before jlb8. New missions start off until a parent switches them on in Ruang Orang Tua.
+- **Misi screen** groups missions by time of day, starting with the current part of the day; earlier parts show at the bottom as "Tadi".
+- **Auto missions.** `gerak` and `belajar` have `auto`: the child can't tick them by hand. `kidAutoMis()` in `jlb_core.js` ticks them when a kid Gerak session completes or a Belajar step or exam finishes, but only if the parent switched them on.
+- **Misi keluarga.** Parents add up to 10 of their own missions (`ortu().own`, ids `own…`), shown with the star-jar icon. They sync with `jlb:ortu`.
+- **Roda Ilmu** now opens after half of today's missions are done, at most 5 (it used to need all of them).
+- **Ustadz.** The Ibadah mission names and notes are in Lembar Periksa section 12.
