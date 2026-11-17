@@ -4,9 +4,9 @@
 /* p = kelompok, t = waktu (SLOTS), h = catatan untuk orang tua, auto = tercentang sendiri dari Gerak/Belajar.
    Ibadah missions are Islamic content: wording reviewed by the ustadz (Lembar Periksa bagian 12). */
 const MISSIONS = {
-  dzikir_pagi:{ n:'Dzikir pagi bersama Ayah/Ibu', ic:'dzikir', p:'ibadah', t:'subuh', h:'Dzikir pagi yang pendek, dibaca bersama setelah Subuh.' },
+  dzikir_pagi:{ n:'Dzikir pagi bersama Ayah/Ibu', ic:'dzikir', p:'ibadah', t:'subuh', h:'Dibaca bersama setelah Subuh. Mulai dengan Radhitu billahi rabba, wabil islami dina, wabi Muhammadin nabiyya. Bila sudah lancar, tambah Al-Ikhlas, Al-Falaq, dan An-Nas, masing-masing 3 kali.' },
   dhuha:{ n:'Sholat Dhuha 2 rakaat', ic:'dhuha', p:'ibadah', t:'pagi', h:'Setelah matahari naik sampai sebelum Dzuhur. Di hari sekolah bisa saat istirahat.' },
-  sedekah:{ n:'Sedekah atau berbagi', ic:'sedekah', p:'ibadah', t:'siang', h:'Uang, makanan, mainan, atau senyuman kepada orang lain.' },
+  sedekah:{ n:'Sedekah atau berbagi', ic:'sedekah', p:'ibadah', t:'siang', h:'Uang, makanan, mainan, atau senyuman kepada orang lain. Senyum kepada saudara juga sedekah (HR. Tirmidzi).' },
   hafalan:{ n:'Hafalan 1 ayat', ic:'surat_harian', fb:'tilawah', p:'ibadah', t:'maghrib', h:'Menghafal atau mengulang 1 ayat bersama Ayah atau Ibu.' },
   wudhu_tidur:{ n:'Wudhu dan doa sebelum tidur', ic:'wudhu', p:'ibadah', t:'isya', h:'Tidur dalam keadaan suci, lalu membaca doa sebelum tidur.' },
   istighfar:{ n:'Istighfar sebelum tidur', ic:'istighfar', p:'ibadah', t:'isya', h:'Membaca Astaghfirullah beberapa kali sebelum tidur.' },
