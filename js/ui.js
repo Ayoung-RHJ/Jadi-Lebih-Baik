@@ -86,13 +86,86 @@ function openWizard(isNew) {
   WZ = { i:0, shown:-1, isNew:!!isNew, D:JSON.parse(JSON.stringify(Object.assign({}, WZ_DEFAULT, base))), err:'' };
   $('#wizard').hidden = false; document.body.classList.add('locked'); wzRender();
 }
-function closeWizard() { $('#wizard').hidden = true; document.body.classList.remove('locked'); WZ = null; }
+function closeWizard() { $('#wizard').hidden = true; $('#wizard').classList.remove('wzk'); document.body.classList.remove('locked'); WZ = null; }
 const wseg = (k, opts, cur) => `<div class="seg" role="group">${opts.map(([v, t]) => `<button data-wseg="${k}" data-val="${v}" aria-pressed="${String(cur) === String(v)}">${t}</button>`).join('')}</div>`;
 const wchips = (k, opts, cur) => `<div class="chips">${opts.map(([v, t]) => `<button class="chip-b" data-wchip="${k}" data-val="${v}" aria-pressed="${cur.map(String).includes(String(v))}">${t}</button>`).join('')}</div>`;
 const art = (kind, id) => `<div class="art-fig">${figHost(kind, id, '')}</div>`;
 
+
+/* ---- Kids' check-up (under 13): after "About you", Jimon takes over with the kids' look ---- */
+const WZK_STEP = { about:1, health:2, exp:3, sched:4, coach:5 };
+const WZK_HQ = [['heart', ['Has a doctor ever said your child has a heart condition?', 'Apakah dokter pernah bilang anak punya masalah jantung?']],
+  ['dizzy', ['Has your child ever fainted, or been so dizzy they fell?', 'Apakah anak pernah pingsan atau pusing sampai jatuh?']],
+  ['surgery', ['Is your child injured now, or had surgery in the last 6 months?', 'Apakah anak sedang cedera atau baru operasi (6 bulan terakhir)?']]];
+const WZK_PART = [['shoulder', ['Shoulder', 'Bahu']], ['wrist', ['Hand', 'Tangan']], ['lowerback', ['Back', 'Punggung']], ['knee', ['Knee', 'Lutut']]];
+const wzkSky = () => { try { return jimg('langit/sky_' + skyNow() + '.webp'); } catch (e) { return jimg('langit/sky_dzuhur.webp'); } };
+const wzkPaws = n => `<div class="wzk-paws" role="img" aria-label="${tt('Step', 'Langkah')} ${n} ${tt('of', 'dari')} 5">${[1, 2, 3, 4, 5].map(i => `<svg aria-hidden="true" class="${i <= n ? 'on' : ''}" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><ellipse cx="12" cy="16" rx="5" ry="4.2"/><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="6" r="2.2"/><circle cx="14.5" cy="6" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/></svg>`).join('')}</div>`;
+function wzkHero(img, n, big) {
+  return `<section class="wzk-hero${big ? ' big' : ''}"><img class="bg" src="${wzkSky()}" alt="">
+    <div class="wzk-top"><button type="button" class="wzk-ic" data-wz="back" aria-label="${tt('Back', 'Kembali')}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>${n ? wzkPaws(n) : '<span style="flex:1"></span>'}${jsoundBtn()}</div>
+    <div class="wzk-say${big ? ' mid' : ''}" aria-live="polite">${esc(WZ.say || '')}</div>
+    <button type="button" class="wzk-cat" data-wzpet aria-label="${tt('Pet Jimon', 'Elus Jimon')}"><img class="${WZ.wig ? 'jwig' : 'jbreathe'}" src="${jimg('jimon/' + img)}" alt="Jimon"></button></section>`;
+}
+const wzkCard = (attrs, on, inner, cls = '') => `<button type="button" class="wzk-card ${cls}" ${attrs} aria-pressed="${on}">${inner}</button>`;
+const WZK_SAY = {
+  health: () => tt('Mum or Dad, please answer this part. I’ll wait!', 'Ayah atau Ibu bantu jawab ya. Aku tunggu!'),
+  exp: () => tt('Do you like moving? Pick the one most like you!', 'Kamu suka bergerak? Pilih yang paling mirip kamu!'),
+  sched: () => tt('Which days shall we play? 3 days a week is great!', 'Hari apa kita main bareng? 3 hari seminggu sudah hebat!'),
+  coach: () => tt('Assalamualaikum! I’m Jimon, your coach.', 'Assalamualaikum! Aku Jimon, pelatihmu.'),
+  result: () => tt('MasyaAllah, you’re ready! I’ll wait for you in Gerak.', 'MasyaAllah, kamu siap! Aku tunggu di Gerak ya.')
+};
+const wzkDaysSay = n => n === 0 ? tt('Pick at least 1 day!', 'Pilih minimal 1 hari ya!') : n < 3 ? tt('OK! But 3 days is more fun.', 'Boleh! Tapi 3 hari lebih seru lho.') : n <= 4 ? tt('3 to 4 days? Great!', '3 sampai 4 hari? Hebat!') : tt('So keen! Keep 1 day to rest.', 'Wah semangat! Sisakan 1 hari untuk istirahat ya.');
+function wzKid(D, s) {
+  let h = '';
+  if (s === 'health') {
+    h += wzkHero('ekspresi/e_peduli.webp', 2) + `<section class="wzk-box"><span class="wzk-tag">${tt('For Mum or Dad', 'Untuk Ayah atau Ibu')}</span>
+      <h1 class="wzk-h">${tt('Your child’s health check', 'Cek kesehatan anak')}</h1><p class="wzk-mut">${tt('A “Yes” doesn’t stop training. It makes the plan gentler.', 'Jawaban "Ya" tidak menghentikan latihan. Programnya jadi lebih ringan.')}</p>
+      ${WZK_HQ.map(([k, q]) => `<div class="wzk-q"><span>${L(q)}</span><div class="wzk-yn">${wzkCard(`data-wseg="hq.${k}" data-val="no"`, D.hq[k] !== 'yes', tt('No', 'Tidak'))}${wzkCard(`data-wseg="hq.${k}" data-val="yes"`, D.hq[k] === 'yes', tt('Yes', 'Ya'), 'warn')}</div></div>`).join('')}
+      <div class="wzk-q"><span>${tt('Does any part of the body hurt right now?', 'Ada bagian badan yang sedang sakit?')}</span><div class="wzk-chips">${wzkCard('data-wkid="nojoint"', !D.joints.length, tt('Nothing', 'Tidak ada'))}${WZK_PART.map(([k, n]) => wzkCard(`data-wchip="joints" data-val="${k}"`, D.joints.includes(k), L(n))).join('')}</div></div>
+      ${healthFlag(D) ? `<p class="wzk-note">${tt('The plan starts in gentle mode. Please check with a doctor before harder training.', 'Program dimulai dalam mode ringan. Sebaiknya tanya dokter dulu sebelum latihan yang lebih berat.')}</p>` : ''}</section>`;
+  } else if (s === 'exp') {
+    const O = [['low', ['Prefer sitting', 'Lebih suka duduk'], ['Reading, TV, indoor play', 'Baca, nonton, main di dalam'], '#7B61C9', '<circle cx="9" cy="4.5" r="2"/><path d="M9 7v6h6l1 6"/><path d="M5 21v-6h5"/><path d="M9 10h5"/>'],
+      ['light', ['Sometimes play outside', 'Kadang main di luar'], ['Bike or football now and then', 'Sepeda atau main bola sesekali'], '#0E7C66', '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c3 2.5 3 14.5 0 17"/><path d="M12 3.5c-3 2.5-3 14.5 0 17"/>'],
+      ['active', ['Love running around', 'Suka lari-larian'], ['Outside playing almost every day', 'Hampir tiap hari main di luar'], '#A85705', '<circle cx="15" cy="4" r="2"/><path d="M8 21l3-6 3 2v4"/><path d="M6 11l3-3h5l2 4 3 1"/><path d="M11 15l2-5"/>']];
+    h += wzkHero('suasana/berpikir.webp', 3) + `<section class="wzk-sec"><h1 class="wzk-h">${tt('Do you like moving?', 'Kamu suka bergerak?')}</h1>
+      ${O.map(([v, n, d, c, ic]) => wzkCard(`data-wseg="act" data-val="${v}" data-wsay="${v}"`, D.act === v, `<span class="wzk-chip" style="background:${c}"><svg aria-hidden="true" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></span><span class="wzk-txt"><b>${L(n)}</b><small>${L(d)}</small></span>`, 'row')).join('')}</section>`;
+  } else if (s === 'sched') {
+    const nm = [['Mon', 'Sen'], ['Tue', 'Sel'], ['Wed', 'Rab'], ['Thu', 'Kam'], ['Fri', 'Jum'], ['Sat', 'Sab'], ['Sun', 'Min']];
+    h += wzkHero('suasana/melambai.webp', 4) + `<section class="wzk-sec"><h1 class="wzk-h">${tt('When shall we play?', 'Kapan kita main?')}</h1>
+      <button type="button" class="wzk-preset" data-wkid="preset">${tt('Pick for me: 3 days (Mon, Wed, Fri)', 'Pilihkan: 3 hari (Sen, Rab, Jum)')}</button>
+      <div class="wzk-days">${DOW.map((d, i) => wzkCard(`data-wchip="days" data-val="${d}" aria-label="${dayName(d)}"`, D.days.includes(d), `<span>${L(nm[i])}</span><span class="st">${D.days.includes(d) ? '★' : '·'}</span>`, 'day')).join('')}</div>
+      <p class="wzk-mut"><b>${D.days.length} ${tt('days picked', 'hari dipilih')}${D.days.length < 7 ? `, ${7 - D.days.length} ${tt('rest days', 'hari istirahat')}` : ''}</b></p>
+      <h2 class="wzk-h2">${tt('How long?', 'Berapa lama?')}</h2>
+      <div class="wzk-two">${[[15, ['Short', 'Sebentar']], [20, ['A bit longer', 'Agak lama']]].map(([m, n]) => wzkCard(`data-wseg="min" data-val="${m}"`, D.min === m, `<b>${L(n)}</b><small>${m} ${tt('minutes', 'menit')}</small>`, 'col')).join('')}</div></section>`;
+  } else if (s === 'coach') {
+    const hand = flip => `<svg aria-hidden="true" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="transform:${flip}"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5"/><path d="M14 10.5V5.5a1.5 1.5 0 0 1 3 0V13"/><path d="M17 11.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1a6 6 0 0 1-5-2.7L4.3 16a1.6 1.6 0 0 1 2.6-1.9L8 15.5"/></svg>`;
+    h += wzkHero('pelatih/pelatih_siap.webp', 5, true) + `<section class="wzk-sec"><h1 class="wzk-h">${tt('Meet Jimon', 'Kenalan dengan Jimon')}</h1>
+      <button type="button" class="jb gold block" data-wkid="hear">${tt('Hear Jimon', 'Dengar Jimon')}</button>
+      <h2 class="wzk-h2">${tt('Which hand do you write with?', 'Kamu menulis pakai tangan apa?')}</h2>
+      <div class="wzk-two">${[['orthodox', ['Right', 'Kanan'], 'scaleX(-1)'], ['southpaw', ['Left', 'Kiri'], 'none']].map(([v, n, f]) => wzkCard(`data-wseg="stance" data-val="${v}" data-wsay="${v}"`, D.stance === v, `${hand(f)}<b>${L(n)}</b>`, 'col hand')).join('')}</div>
+      <p class="wzk-mut small">${tt('For Mum or Dad: right hand means orthodox stance, left means southpaw. Backup voice, combo calls and stance can be changed in Settings.', 'Untuk Ayah/Ibu: tangan kanan berarti kuda-kuda orthodox, kiri southpaw. Suara cadangan, panggilan kombo, dan kuda-kuda bisa diubah di Pengaturan.')}</p></section>`;
+  } else {
+    const sch = schedule(D), nm = [['Mon', 'Sen'], ['Tue', 'Sel'], ['Wed', 'Rab'], ['Thu', 'Kam'], ['Fri', 'Jum'], ['Sat', 'Sab'], ['Sun', 'Min']];
+    h += wzkHero('pelatih/pelatih_sorak.webp', 0, true) + `<section class="wzk-sec"><h1 class="wzk-h c">${tt('Ready for adventure', 'Siap berpetualang')}, ${esc(D.name)}!</h1>
+      <div class="wzk-pills"><span>${D.days.length} ${tt('days a week', 'hari seminggu')}</span><span>${D.min} ${tt('minutes', 'menit')}</span></div>
+      <div class="wzk-week">${DOW.map((d, i) => `<div><i class="${sch.map[d] ? 'on' : ''}">${sch.map[d] ? '★' : ''}</i><small>${L(nm[i])}</small></div>`).join('')}</div>
+      <p class="wzk-mut c">${tt('Every time we play: warm-up, boxing rounds, fun moves, then a cool-down. No weights. Finish to earn stars and XP.', 'Setiap main: pemanasan, ronde tinju, gerak seru, lalu pendinginan. Tanpa dumbel. Selesai main dapat bintang dan XP.')}</p>
+      ${healthFlag(D) ? `<p class="wzk-note">${tt('Gentle mode is on. Please check with a doctor before harder training.', 'Mode ringan aktif. Sebaiknya tanya dokter dulu sebelum latihan yang lebih berat.')}</p>` : ''}</section>`;
+  }
+  h += `<div class="wz-err" role="alert">${WZ.err || ''}</div><div class="wzk-nav"><button type="button" class="jb block big" data-wz="next">${s === 'result' ? tt('Let’s go!', 'Ayo mulai!') : tt('Next', 'Lanjut')}</button></div>`;
+  return h;
+}
 function wzRender() {
   const D = WZ.D, ST = wzSteps(D), s = ST[WZ.i], total = ST.length - 1;
+  const kidUI = ageGroup(D.age) === 'kid' && D.age >= 6 && s !== 'welcome' && s !== 'about';
+  $('#wizard').classList.toggle('wzk', kidUI);
+  if (kidUI) {
+    if (WZ.shown !== WZ.i) { WZ.say = WZK_SAY[s] ? WZK_SAY[s]() : ''; WZ.wig = false; if (s === 'result') jvoice('c_selesai'); else if (s === 'coach') jvoice('o_halo'); else jvoice('meong_1'); }
+    if (s === 'sched' && !(D.min <= 20)) D.min = 15;
+    $('#wzIn').innerHTML = wzKid(D, s);
+    if (WZ.shown !== WZ.i) { $('#wizard').scrollTop = 0; WZ.shown = WZ.i; }
+    return;
+  }
   let h = `<div class="sheet-top"><div class="lang" role="group"><button data-lang="en" aria-pressed="${LANG === 'en'}">EN</button><button data-lang="id" aria-pressed="${LANG === 'id'}">ID</button></div></div>`;
   if (WZ.i > 0 && WZ.i < total) h += `<div class="wz-bar">${Array.from({ length:total - 1 }, (_, k) => `<i class="${k < WZ.i ? 'on' : ''}"></i>`).join('')}</div><p class="small">${tt('Step','Langkah')} ${WZ.i} ${tt('of','dari')} ${total - 1}</p>`;
   if (s === 'welcome') {
@@ -109,7 +182,7 @@ function wzRender() {
         <div><label class="lbl-top" for="w-age">${tt('Age','Usia')}</label><input class="inp" id="w-age" data-k="age" data-num inputmode="numeric" value="${esc(D.age)}"></div>
         ${ageGroup(D.age) === 'kid' ? '' : `<div><label class="lbl-top" for="w-h">${tt('Height (cm)','Tinggi (cm)')}</label><input class="inp" id="w-h" data-k="h" data-num inputmode="decimal" value="${esc(D.h)}"></div>
         <div><label class="lbl-top" for="w-w">${tt('Weight (kg)','Berat (kg)')}</label><input class="inp" id="w-w" data-k="w" data-num inputmode="decimal" value="${esc(D.w)}"></div>`}
-      </div><div class="bmi" id="wzBmi">${b && !isMinor(D) ? `<b>${b.toFixed(1)}</b><span>BMI, ${bmiCat(b)}</span>` : ''}</div>${ageGroup(D.age) === 'kid' ? `<div class="note info">${kidSupTxt()}</div>` : isTeen(D) ? `<div class="note info">${teenTxt()}</div>` : ''}`;
+      </div><div class="bmi" id="wzBmi">${b && !isMinor(D) ? `<b>${b.toFixed(1)}</b><span>BMI, ${bmiCat(b)}</span>` : ''}</div>${ageGroup(D.age) === 'kid' ? `<div class="wzk-hi"><img src="${jimg('jimon/suasana/melambai.webp')}" alt="Jimon"><div><b>${tt('I’m Jimon, I’ll be with you!', 'Aku Jimon, nanti aku yang menemanimu!')}</b>${jbtn(tt('Hear Jimon', 'Dengar Jimon'), 'type="button" data-wkid="hear"', 'gold')}</div></div><div class="note info">${kidSupTxt()}</div>` : isTeen(D) ? `<div class="note info">${teenTxt()}</div>` : ''}`;
   } else if (s === 'health') {
     h += art('scene', 'health') + `<h1 class="h1">${tt('Health check','Cek kesehatan')}</h1><p class="lede">${tt('The standard questions a trainer asks before your first session. A yes doesn’t stop you training. It makes your plan gentler.','Pertanyaan standar pelatih sebelum sesi pertama. Jawaban ya tidak menghentikan latihanmu, hanya membuat programnya lebih ringan.')}</p>
       <div class="fields">${HQ.filter(([k]) => k !== 'preg' || (D.sex === 'female' && !isMinor(D))).map(([k, q]) => `<div class="q"><span>${L(q)}</span>${wseg('hq.' + k, [['no', tt('No','Tidak')],['yes', tt('Yes','Ya')]], D.hq[k])}</div>`).join('')}</div>
@@ -238,7 +311,7 @@ function wzFinish() {
   }
   store.set('profiles', PROFILES);
   if (isMinor(D)) { D.tw = ''; if (D.goal === 'fat') D.goal = 'health'; }
-  if (ageGroup(D.age) === 'kid') { D.goal = 'play'; if (D.push === 'hard') D.push = 'steady'; if (!(D.min <= 20)) D.min = 20; }
+  if (ageGroup(D.age) === 'kid') { D.goal = 'play'; if (!D.kidDef) { D.push = 'calm'; D.calls = 'names'; D.voice = 'female'; D.box = 'none'; D.hq.chest = 'no'; D.hq.bp = 'no'; D.kidDef = 1; } if (D.push === 'hard') D.push = 'steady'; if (!(D.min <= 20)) D.min = 15; }
   if (!(D.tw !== '' && ((D.goal === 'fat' && D.tw < D.w) || (D.goal === 'muscle' && D.tw > D.w)))) D.tw = '';
   D.lang = LANG;
   const old = getW().length ? curW() : null;
@@ -252,6 +325,25 @@ function wzFinish() {
 $('#wizard').addEventListener('click', e => {
   if (!WZ) return;
   const D = WZ.D;
+  const wk = e.target.closest('[data-wkid],[data-wzpet]');
+  if (wk) {
+    if (wk.dataset.wzpet !== undefined) { WZ.pet = (WZ.pet || 0) + 1; WZ.wig = true; WZ.say = WZ.pet % 3 ? tt('Purr… I’m happy you’re here!', 'Prrr… aku senang kamu di sini!') : tt('Hehe, that tickles!', 'Hihihi, geli!'); jvoice(WZ.pet % 3 ? 'dengkur' : 'tertawa'); wzRender(); return; }
+    const k = wk.dataset.wkid;
+    if (k === 'hear') { jvoice('o_halo'); if (wzSteps(D)[WZ.i] === 'coach') { WZ.say = tt('Hi! I’m Jimon. What shall we talk about today?', 'Halo! Aku Jimon. Mau ngobrol apa hari ini?'); WZ.wig = false; wzRender(); } return; }
+    if (k === 'nojoint') { D.joints = []; WZ.wig = false; wzRender(); return; }
+    if (k === 'preset') { D.days = [1, 3, 5]; WZ.say = tt('Monday, Wednesday, Friday. Perfect!', 'Senin, Rabu, Jumat. Pas sekali!'); WZ.wig = false; WZ.err = ''; jvoice('c_bagus'); wzRender(); return; }
+  }
+  if (WZ.D && $('#wizard').classList.contains('wzk')) {
+    const ks = e.target.closest('[data-wsay]');
+    if (ks) { const v = ks.dataset.wsay; WZ.wig = false;
+      WZ.say = { low:tt('That’s fine! We’ll start slowly.', 'Tidak apa-apa! Kita mulai pelan-pelan ya.'), light:tt('Nice! Let’s add more fun.', 'Asyik! Kita tambah serunya.'), active:tt('Wow, you’re quick! Ready to be a Ninja Champion?', 'Wah, kamu lincah! Siap jadi Ninja Juara?'),
+        orthodox:tt('Right hand! Your left foot goes in front.', 'Tangan kanan! Kaki kirimu di depan ya.'), southpaw:tt('Left hand! Your right foot goes in front.', 'Tangan kiri! Kaki kananmu di depan ya.') }[v] || WZ.say;
+      jvoice(jpick(['meong_1', 'meong_2', 'meong_3'])); }
+    const kd = e.target.closest('[data-wchip="days"]');
+    if (kd) { const v = Number(kd.dataset.val), next = D.days.includes(v) ? D.days.length - 1 : D.days.length + 1;
+      if (next > 6) { WZ.say = tt('Keep 1 day to rest, so your body gets strong!', 'Satu hari untuk istirahat ya, biar badan kuat!'); WZ.wig = false; wzRender(); return; }
+      WZ.say = wzkDaysSay(next); WZ.wig = false; jvoice(jpick(['meong_1', 'meong_2', 'meong_3'])); }
+  }
   const sg = e.target.closest('[data-wseg]');
   if (sg) { const k = sg.dataset.wseg, raw = sg.dataset.val, v = /^\d+$/.test(raw) ? Number(raw) : raw;
     if (k.startsWith('hq.')) D.hq[k.slice(3)] = v; else D[k] = v;
@@ -265,7 +357,7 @@ $('#wizard').addEventListener('click', e => {
   if (nav.dataset.wz === 'close') { closeWizard(); if (!PROF) openPicker(); return; }
   if (nav.dataset.wz === 'back') { WZ.i--; WZ.err = ''; wzRender(); return; }
   const err = wzValidate(); if (err) { WZ.err = err; wzRender(); return; }
-  if (wzSteps(WZ.D)[WZ.i] === 'result') return wzFinish();
+  if (wzSteps(WZ.D)[WZ.i] === 'result') { if ($('#wizard').classList.contains('wzk')) jvoice('c_mulai'); return wzFinish(); }
   WZ.i++; WZ.err = ''; wzRender();
 });
 $('#wizard').addEventListener('input', e => {
