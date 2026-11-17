@@ -259,3 +259,10 @@ body.jaudio .jqari{display:block}
 .coachline.jimonc{align-items:flex-end}
 .coachline.jimonc .jcoach{width:96px;height:auto;flex-shrink:0;animation:jbob 2.6s ease-in-out infinite}
 @media (prefers-reduced-motion: reduce){.jgcat img,.coachline.jimonc .jcoach{animation:none}}
+/* jlb8: misi anak per waktu, Ruang Orang Tua per kelompok */
+.jmslot{margin:14px 2px 6px}.jmslot h2{font-size:1.05rem}
+.jmslot.past{opacity:.75}
+.jstk button small{font:600 .66rem var(--jfont);line-height:1.1}
+.jomh{margin:14px 0 2px;font-size:.95rem;color:var(--jg)}
+.jomis{padding:6px 0;border-top:1px solid rgba(15,29,61,.08)}
+.jomis img{flex:0 0 auto;border-radius:50%}
