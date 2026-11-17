@@ -106,3 +106,8 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - **Misi keluarga.** Parents add up to 10 of their own missions (`ortu().own`, ids `own…`), shown with the star-jar icon. They sync with `jlb:ortu`.
 - **Roda Ilmu** now opens after half of today's missions are done, at most 5 (it used to need all of them).
 - **Ustadz.** The Ibadah mission names and notes are in Lembar Periksa section 12.
+
+## jlb9 (Misi ibadah disetujui)
+
+- The ustadz approved all 7 Ibadah missions in Lembar Periksa section 12 (17 Nov 2026). Parent notes for `dzikir_pagi` (Radhitu billahi rabba…, then Al-Ikhlas, Al-Falaq, An-Nas 3×) and `sedekah` (smile is sadaqah, HR. Tirmidzi) follow the ustadz's answers.
+- `IMG` is `jlb-img-v3` (Jimon's JUARA! headband and new scarf replaced pictures under the same names).
