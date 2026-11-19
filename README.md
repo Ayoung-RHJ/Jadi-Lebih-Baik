@@ -26,7 +26,10 @@ Keep it on the same Netlify site address so everyone's saved data (browser stora
 - `js/jlb_kids.js`: kids' Beranda, Misi, Kamar Jimon, Peti Jumat, Ruang Orang Tua (loaded on demand)
 - `js/jlb_jimon.js`: Jimon Pintar chat, offline, answers only from checked content (loaded on demand)
 - `js/jlb_learn.js`: Belajar Musim Baru (5 pulau, steps, unit and island exams), Kisah Pilihan, Roda Ilmu (loaded on demand)
-- `js/jlb_soal.js`: the 250 new approved questions (QB2), 5 questions per step (STEPQ), spare questions (CADQ) and the 10 Kisah Pilihan stories, generated from the approved Lembar Periksa (loaded on demand)
+- `js/jlb_soal.js`: the 250 new approved questions (QB2), 5 questions per step (STEPQ), spare questions (CADQ) and the 10 old Kisah Pilihan stories (no longer shown since jlb12; their XP is kept), generated from the approved Lembar Periksa (loaded on demand)
+- `js/jlb_kisahdata.js`: the 10 Kisah Akhlak stories (8 pages, choices, Pesan, 10 questions, renungan), copied from the approved Naskah Kisah Akhlak (Lembar Periksa bagian 13)
+- `js/jlb_kisah.js`: Kisah Akhlak screens (#belajar/ka): shelf and Buku Kisahku, pages with Bacakan, choices, Pesan, 8 question types, result and renungan (loaded on demand)
+- `js/jlb_teman.js`: Jimon lebih hidup: moods, new room, feeding, Main bersama (#main, 5 games), Surat Jumat and weekly stickers (#surat) (loaded on demand)
 - `js/jlb_rekap.js`: Rekap, Hijriah and Ramadan, Keluarga (loaded on demand)
 - `js/jlb_ayat.json`: Arabic and Kemenag translation for the ayat and hadith in JLB (from quran-json / quranenc and hadith-api). Never type Arabic by hand.
 - `css/jlb.css`: JLB styles
@@ -121,3 +124,15 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - Under 13, the check-up switches to the kids' look after "Tentang kamu": Jimon leads every step (`wzKid()` in `js/ui.js`, styles `.wzk-*` in `css/jlb.css`), paw-print progress, recorded clips only.
 - Steps: Untuk Ayah atau Ibu (3 health questions + sore body part), Kamu suka bergerak?, Kapan kita main? (preset Sen/Rab/Jum, 15 or 20 min), Kenalan dengan Jimon (writing hand sets the stance), Siap berpetualang.
 - New kid profiles get push calm, combo calls by name, backup voice Rani and boxing experience none (`kidDef`); parents change them in Settings. Teens and adults are unchanged.
+
+## jlb12 (Kisah Akhlak + Jimon lebih hidup)
+- **Kisah Akhlak** replaces Kisah Pilihan in Belajar (`#belajar/ka`, old `#belajar/kp` links open it). Progress in `jlb:learn2` as `ka:<n>`
+  (done, mum, best, xp). XP: first finish +10, first Mumtaz (9–10 correct) +5 and the cover in Buku Kisahku. Old Kisah Pilihan XP stays.
+  Renungan answers: `jlb:ren` (shown in Ruang Orang Tua). Page position: `jlb:kaprog`. Pictures: `img/jlb/kisah/k<n>_<0..8>.webp` (0 = cover).
+- **Pesan dari kisah ini** uses `ka_hujurat` (49:11), `ka_amanah` (4:58), `ka_ortu` (17:23), `ka_jujur` (9:119) in `js/jlb_ayat.json`
+  (Arabic and Kemenag translation from quran-json 3.1.2, same source as the rest). The phone voice never reads Arabic; ayat play Alafasy.
+- **Jimon** (`jlb:jimon`): `full`/`hap` with `mat` (moods drop slowly, never below 5%), `fed` and `fishFrom` (1 fish per mission, 3 to start),
+  `play` (Main bersama, 3 times a day, no XP), `kisah`, `stk` (weekly sticker per week). Levels unlock games: 1 bola, 2 tiru, 3 cari, 4 suara, 5 adab.
+- **Surat Jumat** (`#surat`): built from last week's records (Saturday to Friday); shown on Beranda on Friday, and on Saturday and Sunday while the sticker is unclaimed.
+  Share makes a PNG and opens the phone's share menu (WhatsApp).
+- **Tadabbur Alam**: only a "Segera hadir" card on the adult Taman until the material is checked (jlb13).

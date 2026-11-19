@@ -3,14 +3,18 @@
    - js/css/json: stale-while-revalidate (files carry ?v=, so a new release is a new URL)
    - pictures and fonts: cache first
    - anything else (Supabase sync, other sites): never touched
-   Bump VER on every release. Bump IMG when a picture or sound keeps its name but changes (jlb7: Jimon accessories). */
-const VER = 'jlb11';
-const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v3';
+   Bump VER on every release. Bump IMG when a picture or sound keeps its name but changes (jlb7: Jimon accessories).
+   Pictures are fetched with cache:'no-cache' when they go into IMG, so the browser checks Netlify
+   instead of reusing its own 30-day copy (v4: the old scarf and headband stayed after v3).
+   jlb12 adds new pictures and sounds under new names only (img/jlb/kisah, Jimon pose/barang/stiker/suara t_*), so IMG stays v4
+   and phones do not download every old picture again. Kisah pictures are cached when a story is first opened. */
+const VER = 'jlb12';
+const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v4';
 const PRE = ['./', 'index.html', 'manifest.webmanifest',
-  'css/app.css?v=jlb11', 'css/jlb.css?v=jlb11',
-  'js/core.js?v=jlb11', 'js/sync.js?v=jlb11', 'js/figures.js?v=jlb11', 'js/data.js?v=jlb11', 'js/engine.js?v=jlb11',
-  'js/calendar.js?v=jlb11', 'js/dalil_data.js?v=jlb11', 'js/journal.js?v=jlb11', 'js/ui.js?v=jlb11', 'js/player.js?v=jlb11',
-  'js/handwrap.js?v=jlb11', 'js/workouts.js?v=jlb11', 'js/jlb_core.js?v=jlb11', 'js/jlb_gerak.js?v=jlb11', 'js/boot.js?v=jlb11',
+  'css/app.css?v=jlb12', 'css/jlb.css?v=jlb12',
+  'js/core.js?v=jlb12', 'js/sync.js?v=jlb12', 'js/figures.js?v=jlb12', 'js/data.js?v=jlb12', 'js/engine.js?v=jlb12',
+  'js/calendar.js?v=jlb12', 'js/dalil_data.js?v=jlb12', 'js/journal.js?v=jlb12', 'js/ui.js?v=jlb12', 'js/player.js?v=jlb12',
+  'js/handwrap.js?v=jlb12', 'js/workouts.js?v=jlb12', 'js/jlb_core.js?v=jlb12', 'js/jlb_gerak.js?v=jlb12', 'js/boot.js?v=jlb12',
   'img/jlb/brand/emblem-96.webp'];
 
 self.addEventListener('install', e => {
@@ -34,7 +38,7 @@ self.addEventListener('fetch', e => {
     return;
   }
   if (isFont(u) || /\.(webp|png|jpe?g|svg|gif|woff2?|mp3)$/i.test(u.pathname)) {
-    e.respondWith(caches.open(IMG).then(c => c.match(r).then(hit => hit || fetch(r).then(res => { if (res.ok || res.type === 'opaque') c.put(r, res.clone()); return res; }))));
+    e.respondWith(caches.open(IMG).then(c => c.match(r).then(hit => hit || fetch(isFont(u) ? r : new Request(r, { cache:'no-cache' })).then(res => { if (res.ok || res.type === 'opaque') c.put(r, res.clone()); return res; }))));
     return;
   }
   if (/\.(js|css|json|webmanifest)$/i.test(u.pathname)) {
