@@ -119,6 +119,8 @@ function renderTaman() {
   <section class="jcard" aria-label="Amal hari ini"><div class="jrow sp"><h2>Amal hari ini</h2><a href="#amal" class="jmut">Semua</a></div>
     ${(() => { const sn = slotNow(now), i0 = SLOT_I[sn], rot = hb.slice().sort((a, b) => ((SLOT_I[HABITS[a].t] - i0 + 7) % 7) - ((SLOT_I[HABITS[b].t] - i0 + 7) % 7)).slice(0, 5);
       return `<span class="jmut">Sekarang: <b>${SLOTS[i0][1]}</b></span>` + rot.map(h => habBtn(h, d, HABITS[h].t === sn)).join(''); })()}</section>
+  <section class="jcard jsoon" aria-label="Tadabbur Alam"><div class="jrow" style="gap:12px;flex-wrap:nowrap">${jicon('tadabbur', '', 'tilawah')}<span><span class="jpill">Segera hadir</span><h2 style="margin-top:6px">Tadabbur Alam</h2></span></div>
+    <span class="jmut">Merenungi ayat-ayat tentang langit, bumi, dan waktu, dengan lembar fakta dan 1 Ayat Sehari. Materinya sedang disiapkan dan diperiksa ustadz.</span></section>
   <section class="jsplit" style="display:grid;gap:16px">
     <a class="jcard" href="#perjalanan" style="text-decoration:none;color:inherit"><span class="jmut">Perjalanan · ${CHAP[st[0]]}</span><h2>${st[1]}</h2><p class="jmut">${esc(st[3])}</p>
       <div class="jbar"><i style="width:${Math.min(100, J.n / STOP_DAYS * 100)}%"></i></div><span class="jmut">${J.n} dari ${STOP_DAYS} hari</span></a>

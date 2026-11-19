@@ -1,5 +1,6 @@
 /* =========================================================
-   Belajar Seru, Musim Baru: 5 islands, 10 units, steps of 5 questions, unit and island exams, Kisah Pilihan.
+   Belajar Seru, Musim Baru: 5 islands, 10 units, steps of 5 questions, unit and island exams.
+   Kisah Akhlak (#belajar/ka) lives in js/jlb_kisah.js; it replaced Kisah Pilihan in jlb12 (old Kisah Pilihan XP is kept).
    Lesson types: kisah, kuis, susun, doa, puzzle, garis, ujian. Plus Roda Ilmu.
    ========================================================= */
 /* quiz bank: code: [question, right answer, wrong 1, wrong 2, reference, Roda category] */
@@ -174,8 +175,7 @@ function renderBelajar() {
   if (!L2()['i:1']) l2put('i:1', e => { e.d = todayK(); });
   const a = ROUTE_ARG;
   if (a === 'roda') return renderRoda();
-  if (a === 'kp') return renderKPList();
-  if (a && a.startsWith('kp-')) return renderKP(a.slice(3));
+  if (a && /^k[ap](-|$)/.test(a)) return jlazy(['kisahdata', 'kisah'], 'belajar', () => renderKA(a.startsWith('kp') ? 'ka' : a));
   if (a && itemById(a)) return renderItem(itemById(a));
   LS = null;
   const P = pathItems(), cur = curItem(), segs = [5, 4, 3, 2, 1], segH = 1200 / 670 * 100;
@@ -193,13 +193,13 @@ function renderBelajar() {
       marks += `<span class="jisl ${done5 ? 'gold' : ''}" style="top:calc(${segTop + 4} * 1vw * var(--mw));background:${ISL[isl][1]}">${done5 ? '★ ' : ''}Pulau ${isl + 1} · ${ISL[isl][0].replace('Pulau ', '')}</span>`;
       if (!st.open) marks += `<div class="jlockisl" style="top:calc(${segTop + segH * .42} * 1vw * var(--mw))"><b>Pulau ${isl + 1} terkunci</b><span>${esc(st.why)}</span></div>`; }
   });
-  const done = P.filter(itemDone).length, today = todayK(), roda = (jget('roda', {}) || {})[today], A = L2(), kpDone = KISAHP.filter(k => (A['k:' + k.id] || {}).done).length;
+  const done = P.filter(itemDone).length, today = todayK(), roda = (jget('roda', {}) || {})[today], A = L2(), kaDone = Object.keys(A).filter(k => k.startsWith('ka:') && A[k].done).length;
   const curOpen = cur && islandState(cur.isl).open;
   $('#v-belajar').innerHTML = `<div class="jw jkidw"><div class="jrow sp" style="padding-top:8px"><h1>Belajar Seru</h1><span class="jrow" style="gap:6px"><span class="jpill">${done} dari ${P.length}</span>${jsoundBtn()}</span></div>
     <p class="jmut" style="margin:-6px 0 0">Musim baru: 5 pulau, setiap langkah 5 soal, ujian unit dan ujian pulau. Nilai Mumtaz membuka jalan berikutnya.</p>
-    ${!cur ? '<p class="note ok">MasyaAllah, semua pulau selesai!</p>' : curOpen ? `<a class="jb gold block" href="#belajar/${cur.id}">Lanjut: ${esc(cur.n)}</a>` : `<p class="note">${esc(islandState(cur.isl).why)}. Sambil menunggu, ulangi pelajaran yang sudah selesai (+5 XP sekali sehari) atau baca Kisah Pilihan.</p>`}
+    ${!cur ? '<p class="note ok">MasyaAllah, semua pulau selesai!</p>' : curOpen ? `<a class="jb gold block" href="#belajar/${cur.id}">Lanjut: ${esc(cur.n)}</a>` : `<p class="note">${esc(islandState(cur.isl).why)}. Sambil menunggu, ulangi pelajaran yang sudah selesai (+5 XP sekali sehari) atau baca Kisah Akhlak.</p>`}
     <div class="jgrid2">
-    <a class="jcard" href="#belajar/kp" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('berbuat_baik', '', 'baca')}<b>Kisah Pilihan</b><span class="jmut">${kpDone} dari ${KISAHP.length} kisah</span></a>
+    <a class="jcard" href="#belajar/ka" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('cerita_anak', '', 'baca')}<b>Kisah Akhlak</b><span class="jmut">${kaDone} dari 10 kisah</span></a>
     <a class="jcard" href="#belajar/roda" style="text-decoration:none;color:inherit;background:var(--jkidcard)">${jicon('roda')}<b>Roda Ilmu</b><span class="jmut">${roda ? 'Sudah diputar hari ini' : '1 putaran hari ini'}</span></a></div>
     <section class="jmap" style="--mw:1">${segs.map(s => `<img class="seg" src="${jimg('belajar/peta_' + s + '.webp')}" alt="" loading="${s < 3 ? 'eager' : 'lazy'}" decoding="async" width="670" height="1200">`).join('')}${stones}${marks}</section></div>`;
   fixMapScale();
@@ -322,36 +322,6 @@ function finishExam(it) {
   bell && ding(); paintItem(it);
 }
 
-/* ---------------- Kisah Pilihan ---------------- */
-let KPS = null;
-function renderKPList() {
-  const A = L2();
-  $('#v-belajar').innerHTML = `<div class="jw jkidw"><div class="jrow" style="padding-top:8px">${back('#belajar')}<h1>Kisah Pilihan</h1>${jsoundBtn()}</div>
-    <p class="jmut">Kamu tokohnya! Baca ceritanya, lalu pilih yang paling baik. Setiap kisah pertama kali selesai +5 XP.</p>
-    <div style="display:flex;flex-direction:column;gap:10px">${KISAHP.map(k => { const d = (A['k:' + k.id] || {}).done;
-      return `<a class="jcard" href="#belajar/kp-${k.id}" style="text-decoration:none;color:inherit;flex-direction:row;align-items:center;background:var(--jkidcard)"><span class="jkpn ${d ? 'on' : ''}">${d ? '✓' : k.id.slice(1)}</span><span><b>${esc(k.t)}</b><br><span class="jmut">${d ? 'Sudah selesai' : 'Belum dibaca'}</span></span></a>`; }).join('')}</div></div>`;
-}
-function renderKP(id) {
-  const k = KISAHP.find(x => x.id === id); if (!k) { location.hash = '#belajar/kp'; return; }
-  if (!KPS || KPS.id !== id) { KPS = { id, opts:shuffle(k.ch.map((c, i) => Object.assign({ i }, c))), tried:[], end:false }; jvoice('k_mulai'); }
-  const tried = KPS.tried, last = tried[tried.length - 1];
-  $('#v-belajar').innerHTML = `<div class="jw jkidw"><div class="jrow" style="padding-top:8px">${back('#belajar/kp')}<h1>${esc(k.t)}</h1>${jsoundBtn()}</div>
-    <div class="jcard" style="background:var(--jsoft)"><p style="font-size:1.12rem;line-height:1.6;margin:0">${esc(k.scene)}</p></div>
-    <h2>Apa yang kamu lakukan?</h2>
-    <div class="jopt">${KPS.opts.map(o => `<button data-kpo="${o.i}" class="${KPS.end && o.best ? 'ok' : tried.includes(o.i) ? 'no' : ''}" ${KPS.end || tried.includes(o.i) ? 'disabled' : ''}>${esc(o.t)}</button>`).join('')}</div>
-    ${KPS.end ? `<div class="jcard" style="background:#E3F3EE;color:#0B5C4C"><b>MasyaAllah, pilihan yang hebat!</b><span>${esc(k.end)}</span><span class="jsrc">${esc(k.ref)}</span></div>
-      <div class="jrow"><img src="${jimg('jimon/suasana/bangga.webp')}" alt="" width="90" style="width:90px;height:auto" class="jwig"><span class="jmsg">${KPS.gain ? '+5 XP. ' : ''}Kamu bisa melakukannya di dunia nyata juga!</span></div>
-      <a class="jb gold block" href="#belajar/kp">Kisah lainnya</a>`
-    : last !== undefined ? `<div class="jrow"><img src="${jimonFace('peduli')}" alt="" width="80" height="87"><span class="jmsg">${esc(k.nudge)}</span></div>` : ''}</div>`;
-}
-document.addEventListener('click', e => {
-  const b = e.target.closest('[data-kpo]'); if (!b || !KPS) return;
-  const k = KISAHP.find(x => x.id === KPS.id), c = k.ch[Number(b.dataset.kpo)];
-  if (c.best) { KPS.end = true; const A = L2(); if (!(A['k:' + k.id] || {}).done) { l2put('k:' + k.id, x => { x.done = 1; x.xp = 5; x.d = todayK(); }); KPS.gain = 5; } jvoice('k_hebat'); }
-  else { KPS.tried.push(Number(b.dataset.kpo)); jvoice('k_pilih'); }
-  renderKP(k.id);
-});
-
 /* ---------------- Roda Ilmu ---------------- */
 let RD = null;
 const RCAT = ['Doa', 'Sholat', 'Nabi', 'Sirah', 'Quran', 'Akhlak'];
@@ -400,5 +370,5 @@ document.addEventListener('click', e => {
   if (ds.pzdot !== undefined) { if (!LS.pick) return; Object.keys(LS.put).forEach(k => { if (LS.put[k] === LS.pick) delete LS.put[k]; }); LS.put[ds.pzdot] = LS.pick; LS.pick = null; LS.checked = false; return paintItem(it); }
   if (ds.pzcheck !== undefined) { LS.checked = true; LS.pick = null; return paintItem(it); }
 });
-addEventListener('hashchange', () => { if (!location.hash.startsWith('#belajar')) { LS = null; RD = null; KPS = null; if ('speechSynthesis' in window) speechSynthesis.cancel(); }
-  else { if (location.hash === '#belajar/roda') RD = null; if (!location.hash.startsWith('#belajar/kp-')) KPS = null; } });
+addEventListener('hashchange', () => { if (!location.hash.startsWith('#belajar')) { LS = null; RD = null; if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+  else if (location.hash === '#belajar/roda') RD = null; });

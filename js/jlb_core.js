@@ -3,7 +3,7 @@
    XP and levels, Jimon state, lazy modules, tabs and routes.
    All data lives in the same corner3:* storage and syncs like the rest.
    ========================================================= */
-const JLB_VER = 'jlb11';
+const JLB_VER = 'jlb12';
 const JIMG = 'img/jlb/';
 const PR = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
 const PRN = { subuh:'Subuh', dzuhur:'Dzuhur', ashar:'Ashar', maghrib:'Maghrib', isya:'Isya' };
@@ -228,12 +228,12 @@ function jlbTabs() {
   if (isKidP()) return [['taman', 'Beranda', 'home'], ['amal', 'Misi', 'star'], ['home', 'Gerak', 'glove'], ['belajar', 'Belajar', 'book'], ['saya', 'Saya', 'me']];
   return [['taman', tt('Garden','Taman'), 'home'], ['amal', 'Amal', 'check'], ['home', tt('Training','Latihan'), 'glove'], ['rekap', 'Rekap', 'progress'], ['saya', tt('Me','Saya'), 'me']];
 }
-const JTAB_OF = { plan:'home', workouts:'home', progress:'home', me:'saya', perjalanan:'saya', p40:'saya', mujahadah:'saya', detail:'amal', peti:'taman', jimon:'saya', ortu:'saya', keluarga:'taman', hijriah:'rekap', ngobrol:'saya' };
+const JTAB_OF = { plan:'home', workouts:'home', progress:'home', me:'saya', perjalanan:'saya', p40:'saya', mujahadah:'saya', detail:'amal', peti:'taman', jimon:'saya', ortu:'saya', keluarga:'taman', hijriah:'rekap', ngobrol:'saya', main:'saya', surat:'taman' };
 Object.assign(RENDER, {
-  taman:() => isKidP() ? jlazy(['kids'], 'taman', () => renderKidHome()) : jlazy(['adult'], 'taman', () => renderTaman()),
+  taman:() => isKidP() ? jlazy(['kids', 'teman'], 'taman', () => renderKidHome()) : jlazy(['adult'], 'taman', () => renderTaman()),
   amal:() => isKidP() ? jlazy(['kids'], 'amal', () => renderMisi()) : jlazy(['adult'], 'amal', () => renderAmal()),
   detail:() => jlazy(['adult'], 'detail', () => renderDetail()),
-  saya:() => isKidP() ? jlazy(['kids'], 'saya', () => renderKamar()) : jlazy(['adult'], 'saya', () => renderSaya()),
+  saya:() => isKidP() ? jlazy(['kids', 'teman'], 'saya', () => renderKamar()) : jlazy(['adult'], 'saya', () => renderSaya()),
   perjalanan:() => jlazy(['adult'], 'perjalanan', () => renderPerjalanan()),
   p40:() => jlazy(['adult'], 'p40', () => render40()),
   mujahadah:() => jlazy(['adult'], 'mujahadah', () => renderMujahadah()),
@@ -241,7 +241,9 @@ Object.assign(RENDER, {
   hijriah:() => jlazy(['rekap'], 'hijriah', () => renderHijriah()),
   keluarga:() => jlazy(['rekap'], 'keluarga', () => renderKeluarga()),
   peti:() => jlazy(['kids'], 'peti', () => renderPeti()),
-  ortu:() => jlazy(['kids', 'soal', 'learn'], 'ortu', () => renderOrtu()),
+  ortu:() => jlazy(['kids', 'soal', 'learn', 'kisahdata'], 'ortu', () => renderOrtu()),
+  main:() => jlazy(['kids', 'teman'], 'main', () => renderMain()),
+  surat:() => jlazy(['kids', 'teman'], 'surat', () => renderSurat()),
   jimon:() => jlazy(['kids', 'jimon'], 'jimon', () => renderJimonChat()),
   belajar:() => jlazy(['soal', 'learn'], 'belajar', () => renderBelajar())
 });
@@ -261,7 +263,7 @@ Object.assign(RENDER, {
 
 /* ---- sync: merge per day so two phones never overwrite each other ---- */
 function jlbMerge(k, local, remote) {
-  if (!/^p:[^:]+:jlb:(day|learn|learn2|peti|roda|jalan)$/.test(k)) return undefined;
+  if (!/^p:[^:]+:jlb:(day|learn|learn2|peti|roda|jalan|ren)$/.test(k)) return undefined;
   if (!local || !remote || typeof local !== 'object' || typeof remote !== 'object') return undefined;
   const m = Object.assign({}, local);
   Object.keys(remote).forEach(d => { const a = m[d], b = remote[d]; if (!a || ((b && b.at) || 0) >= ((a && a.at) || 0)) m[d] = b; });
