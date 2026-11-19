@@ -8,13 +8,13 @@
    instead of reusing its own 30-day copy (v4: the old scarf and headband stayed after v3).
    jlb12 adds new pictures and sounds under new names only (img/jlb/kisah, Jimon pose/barang/stiker/suara t_*), so IMG stays v4
    and phones do not download every old picture again. Kisah pictures are cached when a story is first opened. */
-const VER = 'jlb12';
+const VER = 'jlb12b';
 const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v4';
 const PRE = ['./', 'index.html', 'manifest.webmanifest',
-  'css/app.css?v=jlb12', 'css/jlb.css?v=jlb12',
-  'js/core.js?v=jlb12', 'js/sync.js?v=jlb12', 'js/figures.js?v=jlb12', 'js/data.js?v=jlb12', 'js/engine.js?v=jlb12',
-  'js/calendar.js?v=jlb12', 'js/dalil_data.js?v=jlb12', 'js/journal.js?v=jlb12', 'js/ui.js?v=jlb12', 'js/player.js?v=jlb12',
-  'js/handwrap.js?v=jlb12', 'js/workouts.js?v=jlb12', 'js/jlb_core.js?v=jlb12', 'js/jlb_gerak.js?v=jlb12', 'js/boot.js?v=jlb12',
+  'css/app.css?v=jlb12b', 'css/jlb.css?v=jlb12b',
+  'js/core.js?v=jlb12b', 'js/sync.js?v=jlb12b', 'js/figures.js?v=jlb12b', 'js/data.js?v=jlb12b', 'js/engine.js?v=jlb12b',
+  'js/calendar.js?v=jlb12b', 'js/dalil_data.js?v=jlb12b', 'js/journal.js?v=jlb12b', 'js/ui.js?v=jlb12b', 'js/player.js?v=jlb12b',
+  'js/handwrap.js?v=jlb12b', 'js/workouts.js?v=jlb12b', 'js/jlb_core.js?v=jlb12b', 'js/jlb_gerak.js?v=jlb12b', 'js/boot.js?v=jlb12b',
   'img/jlb/brand/emblem-96.webp'];
 
 self.addEventListener('install', e => {
