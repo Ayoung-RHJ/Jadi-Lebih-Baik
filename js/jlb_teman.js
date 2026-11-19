@@ -129,9 +129,9 @@ function renderGame(g) {
 }
 function gameStart(g) {
   if (!jimonState().left) return;
-  jimonMood('main'); clearInterval(JG && JG.iv); clearTimeout(JG && JG.tm);
+  jimonMood('main'); if (JG) { cancelAnimationFrame(JG.raf); JG.p = null; }
   JG = { id:g.id, phase:'run', score:0, round:0, tries:0 };
-  if (g.id === 'bola') { JG.t = 30; JG.bx = 40; JG.by = 40; }
+  if (g.id === 'bola') { JG.t = 30; JG.p = null; }
   if (g.id === 'tiru') JG.moves = jshuf(JTIRU).slice(0, 5);
   if (g.id === 'cari') cariRound();
   if (g.id === 'suara') { JG.list = jshuf(Object.keys(JSUARA)).slice(0, 5); suaraRound(); }
@@ -140,23 +140,59 @@ function gameStart(g) {
   renderGame(g);
 }
 
-/* 1. Kejar bola benang */
+/* 1. Kejar bola benang: the ball rolls and bounces continuously (requestAnimationFrame, GPU transforms),
+   Jimon runs after it, a tap counts on touch-down. Speed grows a little with every catch. */
 function paintBola(g) {
   gameShell(g, `<section class="jg-arena" id="jgArena"><div class="jg-score" id="jgScore">${JG.score} tangkap</div>
-    <button class="jg-ball" data-jgball aria-label="Tangkap bola benang" style="left:${JG.bx}%;top:${JG.by}%"><img src="${JBRG('bola_benang')}" alt="" width="70" height="77"></button>
-    <img class="jg-cat" id="jgCat" src="${JPOSE('main_bola')}" alt="Jimon" style="left:${Math.max(0, Math.min(70, JG.bx - 10))}%"></section>
-    <p class="jmut">30 detik, maksimal 3 kali sehari. Setiap main menaikkan hati Senang Jimon, tanpa XP.</p>`, JG.t + ' detik');
-  if (!JG.iv) JG.iv = setInterval(() => {
-    if (!JG || JG.id !== 'bola' || document.body.dataset.view !== 'main') { clearInterval(JG && JG.iv); return; }
-    JG.t--; const s = $('#jgSub'); if (s) s.textContent = JG.t + ' detik';
-    if (JG.t % 2 === 0) bolaMove();
-    if (JG.t <= 0) { clearInterval(JG.iv); JG.iv = null; jvoice('c_selesai'); gameEnd(g, 'Hore! ' + JG.score + ' kali tertangkap!', JG.score >= 15 ? 'Refleksmu cepat sekali!' : 'Seru! Ayo coba lagi besok.'); }
-  }, 1000);
+    <img class="jg-cat" id="jgCat" src="${jimonFace('senang')}" alt="Jimon mengejar bola">
+    <button class="jg-ball" id="jgBall" aria-label="Tangkap bola benang"><img src="${JBRG('bola_benang')}" alt="" width="70" height="77" draggable="false"></button>
+    <div class="jg-pops" id="jgPops" aria-hidden="true"></div></section>
+    <p class="jmut">Ketuk bola benang yang menggelinding. 30 detik, maksimal 3 kali sehari. Setiap main menaikkan hati Senang Jimon, tanpa XP.</p>`, JG.t + ' detik');
+  bolaRun(g);
 }
-function bolaMove() {
-  JG.bx = 6 + Math.random() * 74; JG.by = 8 + Math.random() * 56;
-  const b = $('[data-jgball]'), c = $('#jgCat'); if (b) { b.style.left = JG.bx + '%'; b.style.top = JG.by + '%'; } if (c) c.style.left = Math.max(0, Math.min(70, JG.bx - 10)) + '%';
+function bolaRun(g) {
+  const A = $('#jgArena'), B = $('#jgBall'), C = $('#jgCat'); if (!A || !B) return;
+  const R = 35;                                    // ball radius in px (picture 70 px)
+  const W = () => A.clientWidth, H = () => A.clientHeight;
+  const P = JG.p = JG.p || { x:W() / 2, y:H() * .3, vx:170, vy:0, rot:0, cx:W() / 2, face:1, last:0, end:performance.now() + JG.t * 1000, pop:0 };
+  const launch = () => { const sp = 170 + Math.min(JG.score, 20) * 9, ang = (Math.random() * .5 + .25) * Math.PI;
+    P.x = R + Math.random() * (W() - 2 * R); P.y = R + 4; P.vx = Math.cos(ang) * sp * (Math.random() < .5 ? -1 : 1); P.vy = Math.sin(ang) * sp * .4; };
+  JG.launch = launch;
+  const step = now => {
+    if (!JG || JG.id !== 'bola' || JG.phase !== 'run' || document.body.dataset.view !== 'main' || !A.isConnected) return;
+    const dt = Math.min(.05, P.last ? (now - P.last) / 1000 : 0); P.last = now;
+    if (P.pop > 0) P.pop -= dt;
+    else {
+      P.vy += 520 * dt;                            // a soft bounce like a yarn ball
+      P.x += P.vx * dt; P.y += P.vy * dt;
+      if (P.x < R) { P.x = R; P.vx = Math.abs(P.vx); } if (P.x > W() - R) { P.x = W() - R; P.vx = -Math.abs(P.vx); }
+      const floor = H() - R - 8;
+      if (P.y > floor) { P.y = floor; P.vy = -Math.max(380, Math.abs(P.vy) * .82); }
+      if (P.y < R) { P.y = R; P.vy = Math.abs(P.vy); }
+      P.rot += P.vx * dt * 2.2;
+    }
+    P.cx += (P.x - P.cx) * Math.min(1, dt * 3.2);    // Jimon follows smoothly
+    if (Math.abs(P.x - P.cx) > 6) P.face = P.x > P.cx ? 1 : -1;
+    B.style.transform = `translate3d(${(P.x - R).toFixed(1)}px,${(P.y - R).toFixed(1)}px,0)`;
+    B.firstChild.style.transform = `rotate(${P.rot.toFixed(0)}deg)${P.pop > 0 ? ` scale(${(1 + P.pop * 1.6).toFixed(2)})` : ''}`;
+    B.style.opacity = P.pop > 0 ? Math.max(0, P.pop / .25).toFixed(2) : 1;
+    if (C) C.style.transform = `translate3d(${(P.cx - C.clientWidth / 2).toFixed(1)}px,0,0) scaleX(${P.face})`;
+    const left = Math.max(0, Math.ceil((P.end - now) / 1000));
+    if (left !== JG.t) { JG.t = left; const s = $('#jgSub'); if (s) s.textContent = left + ' detik'; }
+    if (left <= 0) { JG.p = null; jvoice('c_selesai'); return gameEnd(g, 'Hore! ' + JG.score + ' kali tertangkap!', JG.score >= 15 ? 'Refleksmu cepat sekali!' : 'Seru! Ayo coba lagi besok.'); }
+    JG.raf = requestAnimationFrame(step);
+  };
+  cancelAnimationFrame(JG.raf); P.last = 0; JG.raf = requestAnimationFrame(step);
+  B.onpointerdown = e => { e.preventDefault(); if (!JG || JG.phase !== 'run' || P.pop > 0) return;
+    JG.score++; const s = $('#jgScore'); if (s) s.textContent = JG.score + ' tangkap';
+    const pp = $('#jgPops'); if (pp) { const el = document.createElement('span'); el.textContent = '+1'; el.style.left = P.x + 'px'; el.style.top = (P.y - 20) + 'px'; pp.appendChild(el); setTimeout(() => el.remove(), 700); }
+    if (C) { C.classList.remove('jg-jump'); void C.offsetWidth; C.classList.add('jg-jump'); C.src = JPOSE('lompat'); clearTimeout(JG.ct); JG.ct = setTimeout(() => { C.src = jimonFace('senang'); }, 450); }
+    jvoice(JG.score % 4 === 0 ? jpick(['meong_1', 'meong_2', 'meong_3']) : 'b_benar1');
+    P.pop = .25; setTimeout(() => { if (JG && JG.phase === 'run') launch(); }, 250); };
 }
+document.addEventListener('visibilitychange', () => { if (!JG || JG.id !== 'bola' || JG.phase !== 'run' || !JG.p) return;
+  if (document.hidden) JG.p.paused = JG.p.end - performance.now();
+  else if (JG.p.paused) { JG.p.end = performance.now() + JG.p.paused; JG.p.paused = 0; JG.p.last = 0; } });
 
 /* 2. Jimon menirukan */
 const JTIRU = [['Lompat di tempat 3 kali', 'jimon/pose/p_lompat.webp'], ['Angkat kedua tangan tinggi-tinggi', 'jimon/pelatih/pelatih_regang.webp'], ['Jongkok seperti katak', 'jimon/pelatih/pelatih_katak.webp'],
@@ -283,7 +319,7 @@ async function suratShare() {
 
 /* ---------------- events ---------------- */
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-jglock],[data-jgstart],[data-jgball],[data-jgtiru],[data-jgspot],[data-jgnext],[data-jgdengar],[data-jgsuara],[data-jgadab],[data-jgcek],[data-jgulang],[data-sshare],[data-sstk],[data-kfeed]');
+  const t = e.target.closest('[data-jglock],[data-jgstart],[data-jgtiru],[data-jgspot],[data-jgnext],[data-jgdengar],[data-jgsuara],[data-jgadab],[data-jgcek],[data-jgulang],[data-sshare],[data-sstk],[data-kfeed]');
   if (!t || t.disabled) return;
   const ds = t.dataset, g = JG && JGAMES.find(x => x.id === JG.id);
   if (ds.jglock) { e.preventDefault(); jtoast('Yang ini terbuka di Level ' + ds.jglock + '. Ayo kumpulkan XP dari misi!'); jvoice('meong_2'); return; }
@@ -295,7 +331,6 @@ document.addEventListener('click', e => {
   if (ds.sstk !== undefined) { const wk = suratWeek(); jimonSave(J => { J.stk = Object.assign({}, J.stk || {}); J.stk[wk] = stickerOf(wk); }); jvoice('k_hebat'); jtoast('Stiker masuk ke album!'); return renderSurat(); }
   if (!g) return;
   if (ds.jgstart !== undefined) return gameStart(g);
-  if (ds.jgball !== undefined && JG.phase === 'run') { JG.score++; const s = $('#jgScore'); if (s) s.textContent = JG.score + ' tangkap'; if (JG.score % 4 === 0) jvoice(jpick(['meong_1', 'meong_2', 'meong_3'])); bolaMove(); return; }
   if (ds.jgtiru !== undefined) { jvoice(jpick(['c_bagus', 'c_semangat', 'c_kuat'])); JG.round++; if (JG.round >= 5) return gameEnd(g, 'Hebat, kamu menirukan 5 gerakan!', 'Badanmu bergerak, Jimon ikut senang.'); return paintTiru(g); }
   if (ds.jgspot !== undefined) { const i = Number(ds.jgspot); JG.tries++;
     if (i === JG.hide) { JG.found = true; JG.score++; jvoice('tertawa'); } else { JG.miss.push(i); jvoice('meong_3'); }
@@ -311,4 +346,4 @@ document.addEventListener('click', e => {
     if (g.id === 'adab') { jimonSave(J => { J.full += 10; }); return gameEnd(g, 'Jimon makan dengan adab yang baik!', 'Cuci tangan, Bismillah, tangan kanan, Alhamdulillah.'); }
   }
 });
-addEventListener('hashchange', () => { if (JG && !location.hash.startsWith('#main/' + JG.id)) { clearInterval(JG.iv); JG = null; } if (!location.hash.startsWith('#saya')) { KSAY = ''; KEAT = false; } });
+addEventListener('hashchange', () => { if (JG && !location.hash.startsWith('#main/' + JG.id)) { cancelAnimationFrame(JG.raf); JG = null; } if (!location.hash.startsWith('#saya')) { KSAY = ''; KEAT = false; } });
