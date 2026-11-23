@@ -3,7 +3,7 @@
    XP and levels, Jimon state, lazy modules, tabs and routes.
    All data lives in the same corner3:* storage and syncs like the rest.
    ========================================================= */
-const JLB_VER = 'jlb12b';
+const JLB_VER = 'jlb13';
 const JIMG = 'img/jlb/';
 const PR = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
 const PRN = { subuh:'Subuh', dzuhur:'Dzuhur', ashar:'Ashar', maghrib:'Maghrib', isya:'Isya' };
@@ -154,17 +154,42 @@ function jimonHTML(o = {}) {
   const layer = k => { const p = JACC[k].pos, dy = (k === 'kacamata' ? JEYE_DY[f] || 0 : JACC[k].slot === 'kepala' ? JFACE_DY[f] || 0 : 0) / 3.9;
     return `<img class="jm-acc" src="${jimg('jimon/hiasan/a_' + k + '.webp')}" alt="" style="left:${p[0]}%;top:${(p[1] + dy).toFixed(1)}%;width:${p[2]}%" loading="lazy" decoding="async">`; };
   const back = W.punggung ? layer(W.punggung) : '', front = JSLOTS.filter(([s]) => s !== 'punggung' && W[s]).map(([s]) => layer(W[s])).join('');
-  return `<span class="jimon ${o.cls || ''}" style="width:${w}px;height:${h}px">${back}<img class="jm-face" src="${jimonFace(f)}" alt="${esc(o.alt || 'Jimon')}" width="${w}" height="${h}" decoding="async">${o.blink ? `<img class="jm-blink" src="${jimonFace('kedip')}" alt="" decoding="async">` : ''}${front}</span>`;
+  const rig = f === 'senang' && !o.noRig;   // jlb13: the default face is the animated rig (blink, tail, ear, mouth)
+  return `<span class="jimon ${o.cls || ''}" style="width:${w}px;height:${h}px">${back}<img class="jm-face" src="${rig ? JRIGU.base : jimonFace(f)}"${rig ? ' data-rig' : ''} alt="${esc(o.alt || 'Jimon')}" width="${w}" height="${h}" decoding="async">${o.blink && !rig ? `<img class="jm-blink" src="${jimonFace('kedip')}" alt="" decoding="async">` : ''}${front}</span>`;
 }
 
 /* ---- Jimon's voice: recorded clips in img/jlb/jimon/suara/. One clip at a time; a switch on this device turns it off. ---- */
 let JAU = null, JSEQ = [];
+const JACACHE = {};   // jlb13: clips stay loaded, so a tap answers at once
 const jsoundOn = () => store.get('jsound', true) !== false;
-function jvoice(id, then) {
-  if (!id || !jsoundOn()) return;
-  try { if (JAU) { JAU.onended = null; JAU.pause(); } JAU = new Audio(jimg('jimon/suara/' + id + '.mp3'));
-    JAU.onended = () => { JAU = null; if (then) then(); }; JAU.play().catch(() => {}); } catch (e) {}
+function jaudio(id) { let a = JACACHE[id]; if (!a) { a = JACACHE[id] = new Audio(jimg('jimon/suara/' + id + '.mp3')); a.preload = 'auto'; } return a; }
+function jpreload(ids) { if (jsoundOn()) ids.forEach(id => { try { jaudio(id).load(); } catch (e) {} }); }
+function jvoice(id, then) {   // then() always runs: after the clip, or soon when sound is off or the clip cannot play
+  const later = () => { if (then) setTimeout(then, 900); };
+  if (!id || !jsoundOn()) return later();
+  try { if (JAU) { JAU.onended = null; JAU.pause(); } const a = JAU = jaudio(id); a.currentTime = 0;
+    a.onended = () => { if (JAU === a) JAU = null; if (then) then(); }; a.play().catch(() => { if (JAU === a) { JAU = null; a.onended = null; later(); } }); } catch (e) { later(); }
 }
+/* a short buzz on Android phones (iPhone browsers ignore it) */
+const jbuzz = (ms = 15) => { try { if (navigator.vibrate && !matchMedia('(prefers-reduced-motion: reduce)').matches) navigator.vibrate(ms); } catch (e) {} };
+
+/* ---- jlb13: Jimon's rig. Every default-face Jimon (img[data-rig]) blinks, swishes his tail, twitches an ear,
+   and moves his mouth while one of his clips plays. Frames are full pictures of the same size, swapped in place. ---- */
+const JRIGU = ['base', 'blink', 'm1', 'm2', 'tl', 'tr', 'ear'].reduce((o, k) => (o[k] = jimg('jimon/rig/r_' + k + '.webp'), o), {});
+let JRIGPRE = false, JRQ = [], JRNEXT = 0, JRT = 0, JTALK = false;   // JTALK: the phone voice is saying the child's name
+function jrigSet(f) { document.querySelectorAll('img[data-rig]').forEach(i => { if (i.dataset.st !== f) { i.dataset.st = f; i.src = JRIGU[f]; } }); }
+setInterval(() => {
+  if (document.hidden) return;
+  const imgs = document.querySelectorAll('img[data-rig]'); if (!imgs.length) return;
+  if (!JRIGPRE) { JRIGPRE = true; Object.values(JRIGU).forEach(u => { const i = new Image(); i.src = u; }); JRNEXT = Date.now() + 1500; }
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return jrigSet('base');
+  const now = Date.now(); JRT++;
+  if ((JAU && !JAU.paused && !JAU.ended) || JTALK) { JRQ = []; return jrigSet(['m1', 'm2', 'm1', 'base', 'm2'][JRT % 5]); }
+  if (JRQ.length) { const [f, until] = JRQ[0]; if (now < until) return jrigSet(f); JRQ.shift(); if (JRQ.length) { JRQ[0][1] = now + JRQ[0][1]; return jrigSet(JRQ[0][0]); } }
+  if (now < JRNEXT) return jrigSet('base');
+  const r = Math.random(), seq = r < .5 ? [['blink', 150]] : r < .62 ? [['blink', 130], ['base', 160], ['blink', 130]] : r < .88 ? [['tl', 320], ['base', 140], ['tr', 320], ['base', 140], ['tl', 300]] : [['ear', 240]];
+  JRQ = seq.map(x => x.slice()); JRQ[0][1] = now + JRQ[0][1]; JRNEXT = now + 2200 + Math.random() * 3200; jrigSet(JRQ[0][0]);
+}, 110);
 function jvoiceSeq(ids) { const list = ids.slice(); const nx = () => { const id = list.shift(); if (id) jvoice(id, () => setTimeout(nx, 250)); }; nx(); }
 function jhush() { if (JAU) { JAU.onended = null; JAU.pause(); JAU = null; } }
 const jpick = a => a[Math.floor(Math.random() * a.length)];
@@ -200,7 +225,7 @@ function kidAutoMis(m) {
   const O = pget(CUR, 'jlb:ortu', {}) || {}, tk = todayK();
   if (!(O.missions || []).includes(m) || (dayOf(tk).m || {})[m]) return;
   dayPut(tk, d => { d.m = Object.assign({}, d.m || {}); d.m[m] = 1; });
-  setTimeout(() => { jtoast(m === 'gerak' ? 'Misi Gerak bersama Jimon selesai! +5 XP' : 'Misi Belajar Seru selesai! +5 XP'); if (typeof checkLevelUp === 'function') checkLevelUp(); }, 2400);
+  setTimeout(() => { jtoast(m === 'gerak' ? 'Misi Gerak bersama Jimon selesai! +5 XP' : 'Misi Belajar Seru selesai! +5 XP'); if (typeof checkLevelUp === 'function') checkLevelUp(); if (typeof jbuddyReact === 'function') jbuddyReact('misi'); }, 2400);
 }
 const kidMissionsToday = list => list.filter(m => m !== 'puasa' || dayInfo(new Date()).fasting);
 function jtoast(t) { let el = $('#jToast'); if (!el) { el = document.createElement('div'); el.id = 'jToast'; el.className = 'jtoast'; el.setAttribute('role', 'status'); document.body.appendChild(el); } el.textContent = t; el.classList.add('on'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('on'), 2200); }
@@ -263,7 +288,7 @@ Object.assign(RENDER, {
 
 /* ---- sync: merge per day so two phones never overwrite each other ---- */
 function jlbMerge(k, local, remote) {
-  if (!/^p:[^:]+:jlb:(day|learn|learn2|peti|roda|jalan|ren)$/.test(k)) return undefined;
+  if (!/^p:[^:]+:jlb:(day|learn|learn2|peti|roda|jalan|ren|rasa)$/.test(k)) return undefined;
   if (!local || !remote || typeof local !== 'object' || typeof remote !== 'object') return undefined;
   const m = Object.assign({}, local);
   Object.keys(remote).forEach(d => { const a = m[d], b = remote[d]; if (!a || ((b && b.at) || 0) >= ((a && a.at) || 0)) m[d] = b; });
@@ -297,3 +322,15 @@ document.addEventListener('click', e => {
   au.src = list[0]; au.play().catch(() => {});
 });
 addEventListener('hashchange', stopListen);
+
+/* ---- jlb13: Jimon Teman Setia. In kid mode every screen loads js/jlb_buddy.js (companion, greetings, feelings,
+   mission timers, eye rest) and tells it which screen is showing. ---- */
+Object.keys(RENDER).forEach(k => {
+  const f = RENDER[k];
+  RENDER[k] = function () {
+    if (isKidP() && !(JMOD.buddy && JMOD.buddy.done)) jmod('buddy').then(() => { JMOD.buddy.done = true; if (document.body.dataset.view === k) RENDER[k](); }).catch(() => {});
+    const r = f.apply(this, arguments);
+    if (typeof buddySync === 'function') buddySync(k);
+    return r;
+  };
+});

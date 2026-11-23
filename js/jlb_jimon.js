@@ -108,6 +108,8 @@ function jimonReply(txt, st) {
   if (/takut gelap|mimpi buruk|takut tidur|mimpi seram/.test(msg)) { st.ask = null; return ['Baca doa tidur dan Al-Falaq, An-Nas seperti Nabi ﷺ, lalu peluk Ayah atau Ibu ya.', 'peduli', '']; }
   if (/sedih|nangis|menangis|takut|kesepian|dimarahi|dibully|diejek/.test(msg)) { st.ask = null; return ['Aku di sini. Mau cerita ke Ayah atau Ibu juga?', 'peduli', 's_sedih']; }
   if (/boleh(kah)? |haram|halal|dosa|hukum|najis|kafir|surga|neraka|setan|\bjin\b|musik|pacar|pacaran|mati|meninggal|kiamat/.test(raw)) { st.ask = null; return ['Itu pertanyaan bagus! Yang ini tanya Ayah, Ibu, atau ustadz ya.', 'dengar', 's_tanya']; }
+  /* jlb13: the answer to Jimon's question of the day (kept on this phone only) */
+  if (st.ask && st.ask.startsWith('ingat:') && typeof jbRemember === 'function') { const k = st.ask.slice(6); st.ask = null; return [jbRemember(k, txt), 'tertawa', jpick(['v_pendek_wah', 'v_pendek_asyik'])]; }
   /* taught by Ayah and Ibu */
   const aj = (typeof ortu === 'function' ? ortu().ajar : null) || [];
   const tAj = aj.find(x => { const k = jnorm(x.q); return k && (msg.includes(k) || k.split(' ').every(w => toks.includes(w))); });
@@ -145,7 +147,10 @@ function greet() { const p = skyNow();
 let JC = null;
 function renderJimonChat() {
   const O = ortu(), J = jget('jimon', {}), el = $('#v-jimon'), tk = todayK(), cn = jget('chatn', {});
-  if (!JC) { const g = greet(); JC = { msgs:[{ t:g[0] }], face:'senang', quiz:null, anim:true, hearts:false, taps:[], ask:g[2] }; setTimeout(() => { if (JC && document.body.dataset.view === 'jimon') jvoice(g[1]); }, 2300); }
+  if (!JC) { const g = greet(); JC = { msgs:[{ t:g[0] }], face:'senang', quiz:null, anim:true, hearts:false, taps:[], ask:g[2] }; setTimeout(() => { if (JC && document.body.dataset.view === 'jimon') jvoice(g[1]); }, 2300);
+    /* jlb13: one question a day; the greeting's own question waits */
+    const q = O.chat && typeof jbQuestion === 'function' ? jbQuestion() : null;
+    if (q) { jbAsked(); JC.msgs = [{ t:g[0].replace(/ (Sudah sholat \w+|Mau ngobrol apa hari ini)\?$/, '') }, { t:'Aku mau tanya, boleh? ' + q[1] }]; JC.ask = 'ingat:' + q[0]; } }
   const used = cn.d === tk ? cn.n : 0, left = Math.max(0, O.limit - used);
   const dirt = jimonDirt(), wear = jWear(J.wear);
   const cat = dirt ? `<img src="${jimg('jimon/keadaan/j_debu.webp')}" alt="Jimon berdebu" width="190" height="184">` : jimonHTML({ face:JC.face, wear, w:180, blink:JC.face === 'senang', cls:JC.wig ? 'jwig' : 'jbreathe' });

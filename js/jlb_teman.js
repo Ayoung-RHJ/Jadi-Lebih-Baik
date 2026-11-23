@@ -69,13 +69,15 @@ function jimonRoomHTML(o) {
     fx = [10, 25, 40, 55, 70, 85].map((x, i) => `<span class="jbub" style="left:${x}%;bottom:${60 + i % 3 * 30}px;width:${16 + i % 3 * 8}px;height:${16 + i % 3 * 8}px;animation-delay:${i * .15}s"></span>`).join(''); }
   else if (KEAT) cat = `<img src="${JPOSE('makan')}" alt="Jimon makan" class="jk-cat jm-eat">`;
   else if (o.dirt) cat = `<img src="${jimg('jimon/keadaan/j_debu.webp')}" alt="Jimon berdebu" class="jk-cat">`;
-  else if (tidur) { cat = `<img src="${JPOSE('sembunyi_selimut')}" alt="Jimon tidur di balik selimut" class="jk-cat jm-sleep">`; fx = '<span class="jzz z1">z</span><span class="jzz z2">z</span><span class="jzz z3">Z</span>'; }
+  else if (tidur) { cat = J.piyama ? `<img src="${JPOSE('piyama_tidur')}" alt="Jimon tidur memakai piyama" class="jk-cat jm-sleep" style="height:min(150px,34vw)">` : `<img src="${JPOSE('sembunyi_selimut')}" alt="Jimon tidur di balik selimut" class="jk-cat jm-sleep">`; fx = '<span class="jzz z1">z</span><span class="jzz z2">z</span><span class="jzz z3">Z</span>'; }
   else if (KSAY && S.full >= 90 && o.fed) cat = `<img src="${JPOSE('kenyang')}" alt="Jimon kenyang" class="jk-cat jwig">`;
   else if (S.full < 30) cat = `<img src="${JPOSE('lapar')}" alt="Jimon lapar" class="jk-cat jbreathe">`;
   else cat = jimonHTML({ face:o.pet % 2 ? 'dengkur' : 'senang', wear, w:170, blink:!(o.pet % 2), cls:'jbreathe' });
   if (o.pet % 2 && !o.dirt && !o.bath && !KEAT) fx += '<span class="jheart" style="left:52%;bottom:210px">♥</span><span class="jheart" style="left:40%;bottom:190px;animation-delay:.3s">♥</span>';
   const say = KSAY || (o.dirt ? JWORD[Math.min(2, o.dirt)] : tidur ? 'Zzz… (ketuk “Bangun” di Hiasan Jimon)' : jimonPraise(S));
-  return `<section class="jkamar" aria-label="Kamar Jimon"><img class="bg" src="${jimg('jimon/kamar.webp')}" alt="" width="900" height="1003" decoding="async">
+  const night = typeof jroomNight === 'function' && jroomNight(), edit = typeof JEDIT !== 'undefined' && JEDIT;
+  return `<section class="jkamar${night ? ' night' : ''}${edit ? ' edit' : ''}" aria-label="Kamar Jimon"><img class="bg" src="${jimg('jimon/kamar.webp')}" alt="" width="900" height="1003" decoding="async">
+    ${typeof jroomDecor === 'function' ? jroomDecor() : ''}
     ${jmoodBars(S)}<div class="jk-bub" aria-live="polite">${esc(say)}</div>
     <img class="jk-bed" src="${JBRG('bantal')}" alt="" width="320" height="222">${KEAT ? '' : `<img class="jk-bowl" src="${JBRG('mangkuk_makan')}" alt="" width="320" height="213">`}
     <a class="jk-peti" href="#peti" aria-label="Peti Jumat"><img src="${jimg('anak/chest.webp')}" alt="" width="64" height="64"></a>

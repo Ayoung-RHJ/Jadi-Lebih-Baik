@@ -190,6 +190,7 @@ function kaFinish() {
     if (mum && !x.mum) { x.mum = 1; x.md = todayK(); x.xp = (x.xp || 0) + 5; gain += 5; cover = true; } });
   const P = kaProg(); delete P[n]; jset('kaprog', P);
   KX.gain = gain; KX.cover = cover; KX.first = !before.done; KX.ph = 'hasil';
+  if (typeof jbuddyReact === 'function') jbuddyReact('kisah', 2600);
   if (typeof jimonMood === 'function') jimonMood('kisah'); else { const J = jget('jimon', {}) || {}; J.kisah = todayK(); jset('jimon', J); }
   kidAutoMis('belajar');
   jvoice(mum ? 'b_mumtaz' : 'c_bagus'); bell && ding();

@@ -82,6 +82,7 @@ function renderKidHome() {
     <a href="#saya" style="position:absolute;left:50%;bottom:0;transform:translateX(-50%)" aria-label="Ke kamar Jimon">${dirt ? `<img src="${jimg('jimon/keadaan/j_debu.webp')}" alt="Jimon berdebu" width="170" height="165">` : jimonHTML({ face, wear:jWear(J.wear), w:160, blink:true, cls:'jbreathe' })}</a>
     ${dirt ? `<span style="position:absolute;left:12px;bottom:120px;max-width:150px;background:#fff;color:#0F1D3D;border-radius:16px;padding:8px 10px;font-size:.85rem">${JWORD[Math.min(2, dirt)]}</span>` : ''}</section>
   ${surat ? `<a class="jcard jk-surat" href="#surat"><img src="${jimg('jimon/pose/p_menulis.webp')}" alt="" width="70" height="83" class="jbreathe"><span><b>${fri ? 'Hari ini Jumat! Ada surat dari Jimon' : 'Surat Jumat dari Jimon'}</b><br><span class="jmut">${suratSticker() ? 'Baca suratnya dan ambil stiker pekan ini' : 'Baca lagi suratnya'}</span></span></a>` : ''}
+  ${typeof rasaCard === 'function' ? rasaCard() : ''}
   <section class="jcard" style="background:var(--jkidcard)"><div class="jrow sp"><h2>Lentera sholat</h2><span class="jpill">${lit} dari 5</span></div><div class="jlant">${lan}</div>
     <span class="jmut">Nyalakan lentera setelah sholat. Setiap lentera +10 XP.</span></section>
   <div class="jgrid2">
@@ -126,6 +127,7 @@ function renderKamar(fed) {
       return `<button data-kwear="${k}" aria-pressed="${on}" ${lock ? 'disabled' : ''}><img src="${jimg('jimon/hiasan/a_' + k + '.webp')}" alt="" loading="lazy">${A.n}<small>${on ? 'dipakai' : lock ? 'Level ' + A.lv : 'terbuka'}</small></button>`; }).join('')}</div></div>`; }).join('');
   $('#v-saya').innerHTML = `<div class="jw jkidw">
   ${jimonRoomHTML({ bath:KBATH, dirt, pet:KPET, lv:L.l, canBath, missDone, fed })}
+  ${typeof jbKamarExtra === 'function' ? jbKamarExtra() : ''}
   ${dirt && !KBATH ? `<section class="jcard" style="background:#FFF4D6;color:#3D2C00"><b>${dirt >= 2 ? 'Jimon berdebu sekali' : 'Jimon sedikit berdebu'}</b><span>Selesaikan 1 misi hari ini, lalu mandikan Jimon supaya bersih dan wangi lagi.</span>
     ${missDone ? '' : '<a class="jb ghost block" href="#amal">Ke Misi</a>'}</section>` : ''}
   <section class="jcard" style="background:var(--jkidcard)"><div class="jrow sp"><h2>Level ${L.l}</h2><span class="jpill">${xp} XP</span></div><div class="jbar"><i style="width:${L.pct}%"></i></div>
@@ -195,12 +197,19 @@ function renderOrtu() {
     <section class="jcard"><h2>Renungan Kisah Akhlak</h2>${(() => { const R = jget('ren', {}) || {}, ks = Object.keys(R).filter(k => R[k] && R[k].t).sort((a, b) => R[b].at - R[a].at);
       return ks.length ? ks.map(k => `<div><b>Kisah ${esc(k)}${typeof KA !== 'undefined' && KA[k - 1] ? ' · ' + esc(KA[k - 1].t) : ''}</b><br><span class="jmut">${niceDate(new Date(R[k].at))}</span><p>${esc(R[k].t)}</p></div>`).join('') : '<p class="jmut">Belum ada renungan yang disimpan.</p>'; })()}
       <span class="jmut">Jawaban renungan anak setelah menyelesaikan Kisah Akhlak. Tanpa nilai, untuk bahan ngobrol bersama.</span></section>
+    <section class="jcard"><h2>Perasaan anak 14 hari terakhir</h2>${(() => { const R = jget('rasa', {}) || {}, E = { senang:['😊', 'senang'], sedih:['😢', 'sedih'], marah:['😠', 'marah'], takut:['😨', 'takut'], capek:['😴', 'capek'] };
+      const days = Array.from({ length:14 }, (_, i) => dkey(jAdd(new Date(), i - 13))), n = days.filter(k => R[k]).length;
+      const cnt = Object.keys(E).map(m => [m, days.filter(k => R[k] && R[k].m === m).length]).filter(x => x[1]);
+      return `<div class="jorasa">${days.map(k => { const r = R[k], e = r && E[r.m]; return `<span title="${niceDate(kOf(k))}${e ? ': ' + e[1] : ''}"><b aria-hidden="true">${e ? e[0] : '·'}</b><small>${kOf(k).getDate()}</small></span>`; }).join('')}</div>
+        ${n ? `<span class="jmut">${cnt.map(([m, c]) => E[m][1] + ' ' + c + ' hari').join(' · ')}</span>` : '<p class="jmut">Belum ada isian. Anak memilih perasaannya di Beranda.</p>'}`; })()}
+      <span class="jmut">Diisi anak sendiri di Beranda. Tanpa nilai; kalau ada hari sedih, marah, atau takut, ajak ngobrol dengan lembut.</span></section>
     <section class="jcard"><h2>Ajari Jimon</h2><span class="jmut">Tambahkan jawaban Jimon untuk kata-kata yang sering ditulis anak. Jawaban dari Ayah atau Ibu dipakai lebih dulu, dan ikut tersinkron ke perangkat keluarga.</span>
       <label for="oAjQ"><b>Kalau anak menulis</b></label><input id="oAjQ" class="inp" maxlength="60" placeholder="contoh: jimon suka ikan" autocomplete="off">
       <label for="oAjA"><b>Jimon menjawab</b></label><input id="oAjA" class="inp" maxlength="160" placeholder="contoh: Suka sekali! Tapi aku lebih suka belajar bersamamu." autocomplete="off">
       ${jbtn('Simpan jawaban', 'data-oajar', 'navy block')}
       ${(O.ajar || []).map((x, i) => `<div class="jrow sp"><span><b>${esc(x.q)}</b><br><span class="jmut">${esc(x.a)}</span></span>${jbtn('Hapus', 'data-oajdel="' + i + '"', 'ghost')}</div>`).join('') || '<span class="jmut">Belum ada.</span>'}</section>
     <section class="jcard"><h2>Jimon</h2><label class="jrow sp"><span>Boleh ngobrol dengan Jimon</span><input type="checkbox" data-ochat ${O.chat ? 'checked' : ''} style="width:24px;height:24px"></label>
+      <label class="jrow sp"><span>Jimon memanggil nama anak dengan suara HP<br><span class="jmut">Saat sapaan pertama hari ini, misi atau kisah pertama selesai, dan saat lama tidak bertemu</span></span><input type="checkbox" data-onama ${O.nama !== false ? 'checked' : ''} style="width:24px;height:24px"></label>
       <b>Batas pesan per hari</b><div class="jtick">${[5, 10, 15, 20, 30].map(n => `<button class="jchip" data-olim="${n}" aria-pressed="${O.limit === n}">${n} pesan</button>`).join('')}</div>
       <span class="jmut">Jimon Pintar bekerja tanpa internet dan gratis, jadi batas ini hanya untuk mengatur waktu layar. Sekarang ${O.limit} pesan per hari; perubahan langsung berlaku hari ini. Mengelus Jimon tidak memberi XP.</span>
       <b>Obrolan terakhir</b>${chat.length ? chat.map(c => `<p class="jmut">${c.me ? 'Anak' : 'Jimon'}: ${esc(c.t)}</p>`).join('') : '<p class="jmut">Belum ada obrolan.</p>'}</section></div>`;
@@ -213,12 +222,12 @@ document.addEventListener('click', async e => {
   if (!t || t.disabled) return;
   const ds = t.dataset, tk = todayK();
   if (ds.klan) { dayPut(tk, d => { d.s = d.s || {}; const s = Object.assign({}, d.s[ds.klan] || {}); s.f = s.f ? 0 : 1; d.s[ds.klan] = s; });
-    if (dayOf(tk).s[ds.klan].f) { jtoast('Lentera ' + PRN[ds.klan] + ' menyala! +10 XP'); checkLevelUp(); } return renderKidHome(); }
+    if (dayOf(tk).s[ds.klan].f) { jtoast('Lentera ' + PRN[ds.klan] + ' menyala! +10 XP'); checkLevelUp(); if (typeof jbuddyReact === 'function') jbuddyReact('lentera', 150); } return renderKidHome(); }
   if (ds.kgo) { jtoast(ds.kgo === '#home' ? 'Misi ini tercentang sendiri setelah sesi Gerak selesai' : 'Misi ini tercentang sendiri setelah 1 langkah Belajar Seru'); location.hash = ds.kgo; return; }
   if (ds.kmis) { if (MISSIONS[ds.kmis] && MISSIONS[ds.kmis].auto && (dayOf(tk).m || {})[ds.kmis]) return;
     dayPut(tk, d => { d.m = Object.assign({}, d.m || {}); if (d.m[ds.kmis]) delete d.m[ds.kmis]; else d.m[ds.kmis] = 1; });
     if (ds.kmis === 'puasa' && typeof setFast === 'function') setFast(tk, (dayOf(tk).m || {}).puasa ? 'half' : '');
-    if ((dayOf(tk).m || {})[ds.kmis]) { jtoast('Misi selesai! +5 XP'); checkLevelUp(); } return renderMisi(); }
+    if ((dayOf(tk).m || {})[ds.kmis]) { jtoast('Misi selesai! +5 XP'); checkLevelUp(); if (typeof jbuddyReact === 'function') jbuddyReact('misi', 150); } return renderMisi(); }
   if (ds.kpet !== undefined) { if (jimonDirt() || KBATH || jTidur(jget('jimon', {}))) return; KPET++; if (KPET % 2) { jvoice(KPET % 6 === 5 ? 'tertawa' : 'dengkur'); if (typeof jimonMood === 'function') jimonMood('elus'); } renderKamar(); clearTimeout(window._kp); window._kp = setTimeout(() => { if (KPET % 2) { KPET++; if (document.body.dataset.view === 'saya') renderKamar(); } }, 1700); return; }
   if (ds.kbath !== undefined) { KBATH = true; jvoice('t_keran'); renderKamar(); setTimeout(() => { KBATH = false; jset('jimon', Object.assign({}, jget('jimon', {}), { bath:tk })); if (typeof jimonMood === 'function') jimonMood('mandi'); jtoast('Wah, wangi! Terima kasih sudah merawatku.'); jvoice('j_mandi'); if (document.body.dataset.view === 'saya') renderKamar(); }, 1800); return; }
   if (ds.kwear) { const J = jget('jimon', {}), W = jWear(J.wear), k = ds.kwear; let tidur = jTidur(J);
@@ -249,5 +258,6 @@ document.addEventListener('change', e => {
   if (t.dataset.omis) { const O = ortu(); setOrtu({ missions:t.checked ? O.missions.filter(m => m !== t.dataset.omis).concat(t.dataset.omis) : O.missions.filter(m => m !== t.dataset.omis) }); }
   else if (t.dataset.omark) { const O = ortu(); setOrtu({ marks:Object.assign({}, O.marks, { [t.dataset.omark]:t.checked }) }); }
   else if (t.dataset.ochat !== undefined) setOrtu({ chat:t.checked });
+  else if (t.dataset.onama !== undefined) setOrtu({ nama:t.checked });
 });
 addEventListener('hashchange', () => { if (!location.hash.startsWith('#ortu')) OUNLOCK = false; });
