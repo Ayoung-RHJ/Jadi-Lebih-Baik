@@ -442,3 +442,85 @@ body.jaudio .jqari{display:block}
 .jb.jwa{background:#1FA855;color:#fff}
 .jsoon{background:linear-gradient(135deg,#0F1D3D,#2A1F5C);color:#fff}.jsoon .jmut,.jsoon h2{color:#E6EBF5}
 @media (prefers-reduced-motion:reduce){.ka-hop>img,img.ka-hop,.ka-rise,.ka-star,.jm-eat,.jzz,.jlvup i,.jg-tail,.jg-pops span,.jletter,.jletter .paw,.pop,.ka-opts button.ok{animation:none}}
+
+/* ---------- jlb13 · Jimon Teman Setia ---------- */
+.jbd{position:fixed;right:8px;bottom:calc(70px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:flex-end;gap:6px;pointer-events:none;font-family:var(--jfont)}
+.jbd[hidden]{display:none}
+.jbd>*{pointer-events:auto}
+.jbd-cat{position:relative;border:0;background:none;padding:0;width:96px;height:104px;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;filter:drop-shadow(0 4px 6px rgba(15,29,61,.18))}
+.jbd-cat .jimon,.jbd-cat .jbd-pose{width:96px!important;height:104px!important;object-fit:contain;object-position:50% 100%;display:block}
+.jbd-cat .jheart{position:absolute}
+.jbd-cat .jzz{position:absolute;right:6px;top:0}
+.jbd-hop{animation:jbdhop .45s ease-out}
+@keyframes jbdhop{40%{transform:translateY(-14px) scale(1.04,.96)}}
+.jbd.walk .jbd-cat{animation:jbdwalk 1.25s linear}
+@keyframes jbdwalk{from{transform:translateX(130px)}to{transform:none}}
+.jbd-x{position:absolute;right:-2px;top:-6px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(15,29,61,.55);color:#fff;font:900 15px/26px var(--jfont);cursor:pointer;padding:0}
+.jbd-bub{position:absolute;right:92px;bottom:56px;width:max-content;max-width:min(230px,60vw);background:#fff;color:#0F1D3D;border-radius:18px 18px 4px 18px;padding:9px 12px;font:700 .9rem/1.35 var(--jfont);box-shadow:0 4px 14px rgba(15,29,61,.18)}
+.jbd-bub[hidden]{display:none}
+.jbd-pop{animation:kapop .35s ease-out}
+.jbd-peek{display:none;border:0;background:none;padding:0;cursor:pointer;width:84px;height:42px;overflow:hidden;margin-bottom:-10px}
+.jbd-peek img{width:84px;height:auto;display:block;margin-top:2px}
+.jbd.mini .jbd-cat,.jbd.mini .jbd-x,.jbd.mini .jbd-bub{display:none}
+.jbd.mini .jbd-peek{display:block}
+.jbd-hbub{position:absolute;left:12px;bottom:150px;max-width:min(200px,52%);background:#fff;color:#0F1D3D;border-radius:18px 18px 18px 4px;padding:9px 12px;font:700 .9rem/1.35 var(--jfont);box-shadow:0 4px 14px rgba(15,29,61,.18);z-index:3;animation:kapop .35s ease-out}
+/* sheets */
+.jbs{align-items:center;text-align:center}
+.jbs h2{margin:0}
+.jbs-pose{height:170px;width:auto;max-width:80%;object-fit:contain}
+.jbd-brush{animation:jbdbrush .5s ease-in-out infinite}
+@keyframes jbdbrush{50%{transform:rotate(-3deg) translateY(-3px)}}
+.jbd-drink{animation:jbdhop .6s ease-out}
+.jbring{position:relative;width:150px;height:150px;display:block}
+.jbring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.jbring circle{fill:none;stroke-width:12}
+.jbring .bg{stroke:var(--jsoft)}
+.jbring .fg{stroke:#2F80ED;stroke-linecap:round;transition:stroke-dashoffset .5s linear}
+.jbring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 2rem var(--jfont)}
+.jbs-say{font-weight:700}
+.jbglass{display:flex;gap:6px;justify-content:center}
+.jbglass img{width:36px;height:auto;opacity:.25;filter:grayscale(1)}
+.jbglass img.on{opacity:1;filter:none}
+.jbs-gift{position:relative;display:block}
+.jbs-item{width:90px;height:auto;position:absolute;right:-10px;bottom:0}
+.jbs-item.big{position:static;width:160px}
+.jbs-hearts{position:relative;height:0;display:block}
+.jbs-hearts i{position:absolute;color:#EB5757;font-style:normal;font-size:1.6rem;animation:jheart 1.4s ease-out forwards}
+.jbs-hearts i:nth-child(1){left:-40px}.jbs-hearts i:nth-child(2){left:0;animation-delay:.2s}.jbs-hearts i:nth-child(3){left:40px;animation-delay:.4s}
+.jbdoa{background:#FFF4D6;color:#3D2C00;border-radius:18px;padding:12px 16px;width:100%}
+.jbdoa p{margin:4px 0 0;font:800 1.1rem/1.4 var(--jfont)}
+.jbnapas{width:150px;height:150px;margin:6px auto;border-radius:50%;background:radial-gradient(circle,#BFE3FF,#2F80ED);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;transition:transform 4s ease-in-out}
+.jbnapas.in{animation:jbin 4s ease-in-out forwards}.jbnapas.out{animation:jbout 4s ease-in-out forwards}
+@keyframes jbin{from{transform:scale(.6)}to{transform:scale(1)}}
+@keyframes jbout{from{transform:scale(1)}to{transform:scale(.6)}}
+/* feelings */
+.jbrasa-f{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.jbrasa-f button{min-height:84px;border-radius:18px;border:2px solid #DCE6F5;background:var(--jkidcard);color:var(--jink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 .78rem var(--jfont);cursor:pointer;padding:4px}
+.jbrasa-f span{font-size:2rem;line-height:1}
+.jbrasa.done{flex-direction:row;align-items:center;gap:12px}
+.jbrasa-e{font-size:2.4rem}
+.jorasa{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.jorasa span{display:flex;flex-direction:column;align-items:center;background:var(--jsoft);border-radius:12px;padding:4px 0}
+.jorasa b{font-size:1.3rem;line-height:1.3}.jorasa small{font-size:.7rem;color:var(--jmut)}
+/* room: decorations, night, decorating */
+.jdec{position:absolute;transform:translate(-50%,-50%);height:auto;z-index:1;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.jdec.floor{z-index:0}
+.jkamar .jk-bed,.jkamar .jk-bowl,.jkamar .jk-peti{z-index:1}
+.jkamar .cat{z-index:2}
+.jkamar .jk-bub,.jkamar .jmoods,.jkamar .jk-lv{z-index:4}
+.jkamar.night::after{content:'';position:absolute;inset:0;background:rgba(18,26,72,.38);pointer-events:none;z-index:3}
+.jdec-glow{position:absolute;width:44%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,221,120,.55),rgba(255,221,120,0) 70%);z-index:5;pointer-events:none;mix-blend-mode:screen}
+.jkamar.edit .jdec{pointer-events:auto;cursor:grab;touch-action:none;outline:2px dashed rgba(255,255,255,.9);outline-offset:2px;border-radius:8px}
+.jkamar.edit .jdec.drag{cursor:grabbing;filter:drop-shadow(0 8px 10px rgba(0,0,0,.3));z-index:6}
+.jkamar.edit .cat{pointer-events:none}
+.jkamar .cat{touch-action:pan-y}
+.jbnight,.jbgiftj{flex-direction:row;align-items:center;gap:12px;text-align:left;border:0;font:inherit;cursor:pointer;color:#fff;background:linear-gradient(135deg,#1F2C6B,#3A4FA3)}
+.jbnight .jmut{color:#D5DCF5}
+.jbgiftj{background:#FFF4D6;color:#3D2C00}.jbgiftj .jmut{color:#6B4A00}
+.jbtoys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.jbtoys>div{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-size:.75rem;border-radius:16px;padding:6px 2px;background:var(--jsoft)}
+.jbtoys img{width:56px;height:46px;object-fit:contain}
+.jbtoys .lock img{filter:grayscale(1);opacity:.45}
+.jbtoys .jb{min-height:36px;padding:0 10px;font-size:.78rem}
+.jbtoys small{color:var(--jmut)}
+@media (prefers-reduced-motion:reduce){.jbd-hop,.jbd.walk .jbd-cat,.jbd-brush,.jbd-drink,.jbnapas.in,.jbnapas.out{animation:none}}
