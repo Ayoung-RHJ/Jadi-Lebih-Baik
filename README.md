@@ -30,6 +30,7 @@ Keep it on the same Netlify site address so everyone's saved data (browser stora
 - `js/jlb_kisahdata.js`: the 10 Kisah Akhlak stories (8 pages, choices, Pesan, 10 questions, renungan), copied from the approved Naskah Kisah Akhlak (Lembar Periksa bagian 13)
 - `js/jlb_kisah.js`: Kisah Akhlak screens (#belajar/ka): shelf and Buku Kisahku, pages with Bacakan, choices, Pesan, 8 question types, result and renungan (loaded on demand)
 - `js/jlb_buddy.js`: Jimon Teman Setia (jlb13, kid mode only): floating Jimon, greetings with the child's name, mission companion, eye rest, Perasaanku, night routine, gifts, room decorating, question of the day (loaded on demand by the hook at the end of `jlb_core.js`)
+- `js/jlb_main2.js`: Main bersama Musim 2 (jlb14): five canvas games (Pulang, Hujan Bintang, Menara Kardus, Kejar Tikus, Masak Sup) adapted from the WIRTIX game engines; pictures in `img/jlb/main2/` (loaded with #main)
 - `js/jlb_teman.js`: Jimon lebih hidup: moods, new room, feeding, Main bersama (#main, 5 games), Surat Jumat and weekly stickers (#surat) (loaded on demand)
 - `js/jlb_rekap.js`: Rekap, Hijriah and Ramadan, Keluarga (loaded on demand)
 - `js/jlb_ayat.json`: Arabic and Kemenag translation for the ayat and hadith in JLB (from quran-json / quranenc and hadith-api). Never type Arabic by hand.
@@ -133,10 +134,10 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - **Pesan dari kisah ini** uses `ka_hujurat` (49:11), `ka_amanah` (4:58), `ka_ortu` (17:23), `ka_jujur` (9:119) in `js/jlb_ayat.json`
   (Arabic and Kemenag translation from quran-json 3.1.2, same source as the rest). The phone voice never reads Arabic; ayat play Alafasy.
 - **Jimon** (`jlb:jimon`): `full`/`hap` with `mat` (moods drop slowly, never below 5%), `fed` and `fishFrom` (1 fish per mission, 3 to start),
-  `play` (Main bersama, 3 times a day, no XP), `kisah`, `stk` (weekly sticker per week). Levels unlock games: 1 bola, 2 tiru, 3 cari, 4 suara, 5 adab.
+  `play` (Main bersama, 3 times a day, no XP), `kisah`, `stk` (weekly sticker per week). levels unlock games (jlb14 order in the jlb14 section).
 - **Surat Jumat** (`#surat`): built from last week's records (Saturday to Friday); shown on Beranda on Friday, and on Saturday and Sunday while the sticker is unclaimed.
   Share makes a PNG and opens the phone's share menu (WhatsApp).
-- **Tadabbur Alam**: only a "Segera hadir" card on the adult Taman until the material is checked (now planned for jlb14).
+- **Tadabbur Alam**: only a "Segera hadir" card on the adult Taman until the material is checked (now planned for jlb15).
 
 ## jlb13 (Jimon Teman Setia)
 - **Rig**: every default-face Jimon (`jimonHTML` with face `senang`) uses `img/jlb/jimon/rig/r_*.webp` (720×780, same canvas as `e_senang`, so accessories line up).
@@ -155,3 +156,13 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - **Gifts**: toys for Jimon open at 10/25/45/70 missions (`jimon.gift.toys`); Jimon gives one furniture piece per week with 7+ missions (`jimon.gift.furn`).
   Everything owned appears in the room; "Tata kamar" drags them (`jimon.room` {item:{x, y, on}} in % of the room).
 - **Question of the day** in Ngobrol (makanan, warna, cita-cita, hewan, teman, pelajaran; at night "apa yang membuatmu senang" is not kept). Answers in `_ingat:<id>`, this phone only, used in Jimon's lines.
+
+## jlb14 (Main bersama Musim 2)
+- Five new games in Main bersama, code in `js/jlb_main2.js` (one shared canvas runner `g2Run`, one object per game in `G2`).
+  Engines adapted from the WIRTIX games: Hisana Run → **Jimon Pulang Sebelum Maghrib**, Catch the Crunch → **Hujan Bintang**,
+  Tower Stacker → **Menara Kardus**, Speed Fest Drift → **Kejar Tikus** (one-finger steering, then a tidy-up round), Crispy Slicer → **Masak Sup** (pieces go into the pot).
+- Unlocks (`JGAMES` in `jlb_teman.js`): bola, tiru, cari from Level 1; suara 2; adab 3; pulang 4; hujan 5; menara 6; kejar 7; masak 8. All share the 3 plays a day, no XP.
+- No minus points, no "dying", no music: short tones made in code (`sfx`) and Jimon's clips `v_game_*`. Game time stops while the app is in the background.
+- Personal best per game in `jlb:jimon.rek` (synced); a new best plays `v_puji_rekor`.
+- `v_game_rumah` ("Alhamdulillah, sampai rumah!") waits for Lembar Periksa bagian 15 (`G2TUNGGU`); `v_pendek_horee` is used meanwhile.
+- Masak Sup ends with the approved line o5 as text: "Jangan lupa bismillah dan pakai tangan kanan ya!".
