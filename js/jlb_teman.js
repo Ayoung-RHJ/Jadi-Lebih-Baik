@@ -92,10 +92,16 @@ function jimonRoomHTML(o) {
 /* ---------------- Main bersama ---------------- */
 const JGAMES = [
   { id:'bola', n:'Kejar bola benang', d:'Ketuk bola benang secepat mungkin', lv:1, skill:'Refleks', img:JBRG('bola_benang'), c:'#EB5757', how:'Ketuk bola benang sebelum Jimon menangkapnya. 30 detik.' },
-  { id:'tiru', n:'Jimon menirukan', d:'Jimon bergerak, kamu menirukan', lv:2, skill:'Gerak badan', img:JPOSE('lompat'), c:'#0E7C66', how:'Jimon memperagakan 5 gerakan. Tirukan, lalu tekan Sudah. Tanpa kamera.' },
-  { id:'cari', n:'Cari Jimon', d:'Jimon bersembunyi di kamar', lv:3, skill:'Fokus', img:JPOSE('intip_kardus'), c:'#2450D6', how:'Jimon bersembunyi di balik salah satu benda. Temukan dia dalam 3 kali tebak. Makin lama makin banyak tempat.' },
-  { id:'suara', n:'Tebak suara', d:'Dengar suaranya, pilih gambarnya', lv:4, skill:'Mendengar', img:jimg('jimon/pelatih/pelatih_peluit.webp'), c:'#A85705', how:'Dengarkan suaranya, lalu pilih gambar yang cocok. 5 suara.' },
-  { id:'adab', n:'Susun adab makan Jimon', d:'Urutkan adab sebelum sampai sesudah makan', lv:5, skill:'Adab', img:JBRG('mangkuk_makan'), c:'#6B3FC4', how:'Susun kartu adab makan dengan urutan yang benar, lalu Jimon makan dengan lahap.' }
+  { id:'tiru', n:'Jimon menirukan', d:'Jimon bergerak, kamu menirukan', lv:1, skill:'Gerak badan', img:JPOSE('lompat'), c:'#0E7C66', how:'Jimon memperagakan 5 gerakan. Tirukan, lalu tekan Sudah. Tanpa kamera.' },
+  { id:'cari', n:'Cari Jimon', d:'Jimon bersembunyi di kamar', lv:1, skill:'Fokus', img:JPOSE('intip_kardus'), c:'#2450D6', how:'Jimon bersembunyi di balik salah satu benda. Temukan dia dalam 3 kali tebak. Makin lama makin banyak tempat.' },
+  { id:'suara', n:'Tebak suara', d:'Dengar suaranya, pilih gambarnya', lv:2, skill:'Mendengar', img:jimg('jimon/pelatih/pelatih_peluit.webp'), c:'#A85705', how:'Dengarkan suaranya, lalu pilih gambar yang cocok. 5 suara.' },
+  { id:'adab', n:'Susun adab makan Jimon', d:'Urutkan adab sebelum sampai sesudah makan', lv:3, skill:'Adab', img:JBRG('mangkuk_makan'), c:'#6B3FC4', how:'Susun kartu adab makan dengan urutan yang benar, lalu Jimon makan dengan lahap.' },
+  /* jlb14: Main bersama Musim 2, canvas games in js/jlb_main2.js (engines adapted from the WIRTIX games) */
+  { id:'pulang', n:'Jimon Pulang Sebelum Maghrib', d:'Lari pulang, lompati genangan dan pagar', lv:4, skill:'Lincah', img:jimg('main2/j_lari1.webp'), c:'#E07A2E', ext:1, how:'Ketuk bagian ATAS layar untuk melompat, ketuk bagian BAWAH untuk meluncur di bawah jemuran. Kumpulkan ikan dan sampai rumah sebelum Maghrib.' },
+  { id:'hujan', n:'Hujan Bintang Jimon', d:'Tangkap bintang dengan keranjang', lv:5, skill:'Fokus', img:jimg('main2/bintang.webp'), c:'#2F80ED', ext:1, how:'Geser jari ke kiri dan kanan. Tangkap bintang, ikan, dan bulan. Hindari awan petir. 45 detik.' },
+  { id:'menara', n:'Menara Kardus Jimon', d:'Susun kardus setinggi mungkin', lv:6, skill:'Sabar', img:jimg('main2/k_kardus3.webp'), c:'#A0703C', ext:1, how:'Kardus berayun di tali. Ketuk layar saat kardus tepat di atas menara. Pelan-pelan, jangan sampai miring!' },
+  { id:'kejar', n:'Jimon Kejar Tikus', d:'Kejar tikus mainan, lalu rapikan kamar', lv:7, skill:'Lincah', img:jimg('main2/t_tikus.webp'), c:'#8E5BD6', ext:1, how:'Tahan dan geser jari, Jimon berlari ke arah jarimu dan meluncur di lantai licin. Tangkap tikus mainan. Setelah itu, ketuk barang yang berantakan supaya rapi lagi.' },
+  { id:'masak', n:'Masak Sup Jimon', d:'Potong bahan, masukkan ke panci', lv:8, skill:'Cekatan', img:jimg('main2/panci.webp'), c:'#C2453A', ext:1, how:'Usap layar untuk memotong bahan yang dilempar. Potongannya masuk panci. Jangan potong kaus kaki dan sandal! 30 detik. Di dapur sungguhan, pakai pisau bersama Ayah atau Ibu ya.' }
 ];
 let JG = null;    // permainan yang sedang berjalan
 function renderMain() {
@@ -115,18 +121,19 @@ function gameShell(g, inner, sub = '') {
 }
 function gameIntro(g) {
   const S = jimonState();
-  return gameShell(g, `<section class="jcard" style="align-items:center;text-align:center;background:var(--jkidcard)"><img src="${g.img}" alt="" style="height:130px;width:auto" class="jbreathe"><h2>${g.n}</h2><span class="jmut">${g.how}</span>
+  return gameShell(g, `<section class="jcard" style="align-items:center;text-align:center;background:var(--jkidcard)"><img src="${g.img}" alt="" style="height:130px;width:auto" class="jbreathe"><h2>${g.n}</h2><span class="jmut">${g.how}</span>${g.ext && ((S.J.rek || {})[g.id]) ? `<span class="jpill">Rekormu: ${S.J.rek[g.id]}</span>` : ''}
     ${S.left ? jbtn('Mulai main', 'data-jgstart', 'block') : '<p class="note">Hari ini sudah 3 kali main. Besok kita main lagi ya!</p>'}<span class="jmut">${S.left} dari ${JPLAY_MAX} kali main tersisa hari ini</span></section>`);
 }
-function gameEnd(g, title, sub) {
+function gameEnd(g, title, sub, img) {
   const S = jimonState();
   JG.phase = 'end';
-  gameShell(g, `<section class="jcard" style="align-items:center;text-align:center;background:var(--jkidcard)"><img src="${JPOSE('lompat')}" alt="Jimon melompat gembira" class="ka-hop" style="height:150px;width:auto"><h2>${title}</h2><span class="jmut">${sub}</span>
+  gameShell(g, `<section class="jcard" style="align-items:center;text-align:center;background:var(--jkidcard)"><img src="${img || JPOSE('lompat')}" alt="Jimon gembira" class="ka-hop" style="height:150px;width:auto"><h2>${title}</h2><span class="jmut">${sub}</span>
     <span class="jmut">Hati Senang Jimon naik. Sisa ${S.left} kali main hari ini.</span>${S.left ? jbtn('Main lagi', 'data-jgstart', 'block') : ''}<a class="jb ghost block" href="#main">Pilih permainan lain</a></section>`);
 }
 function renderGame(g) {
   if (!JG || JG.id !== g.id) JG = { id:g.id, phase:'intro' };
   if (JG.phase !== 'run') return gameIntro(g);
+  if (g.ext) return typeof g2Run === 'function' ? g2Run(g) : null;
   ({ bola:paintBola, tiru:paintTiru, cari:paintCari, suara:paintSuara, adab:paintAdab })[g.id](g);
 }
 function gameStart(g) {

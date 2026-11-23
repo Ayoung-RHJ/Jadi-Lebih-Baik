@@ -3,7 +3,7 @@
    XP and levels, Jimon state, lazy modules, tabs and routes.
    All data lives in the same corner3:* storage and syncs like the rest.
    ========================================================= */
-const JLB_VER = 'jlb13';
+const JLB_VER = 'jlb14';
 const JIMG = 'img/jlb/';
 const PR = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
 const PRN = { subuh:'Subuh', dzuhur:'Dzuhur', ashar:'Ashar', maghrib:'Maghrib', isya:'Isya' };
@@ -267,7 +267,7 @@ Object.assign(RENDER, {
   keluarga:() => jlazy(['rekap'], 'keluarga', () => renderKeluarga()),
   peti:() => jlazy(['kids'], 'peti', () => renderPeti()),
   ortu:() => jlazy(['kids', 'soal', 'learn', 'kisahdata'], 'ortu', () => renderOrtu()),
-  main:() => jlazy(['kids', 'teman'], 'main', () => renderMain()),
+  main:() => jlazy(['kids', 'teman', 'main2'], 'main', () => renderMain()),
   surat:() => jlazy(['kids', 'teman'], 'surat', () => renderSurat()),
   jimon:() => jlazy(['kids', 'jimon'], 'jimon', () => renderJimonChat()),
   belajar:() => jlazy(['soal', 'learn'], 'belajar', () => renderBelajar())
