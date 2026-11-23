@@ -10,9 +10,9 @@
    _jb:<id> dan _ingat:<id> hanya di HP ini (tidak sinkron).
    ========================================================= */
 
-/* Clips with an [ustadz] line wait for Lembar Periksa bagian 15. Until then Jimon uses a neutral clip
-   (or text only). After approval, empty this set in the next release. */
-const JB_TUNGGU = new Set(['v_sapa_pagi', 'v_puji_masya', 'v_malam_doa']);
+/* Clips with an [ustadz] line (Lembar Periksa bagian 15): approved by the ustadz on 23 Nov 2026, so none wait any more.
+   A clip put in this set would be replaced by its neutral clip below until it is approved. */
+const JB_TUNGGU = new Set([]);
 const JB_GANTI = { v_sapa_pagi:'v_malam_pagi', v_puji_masya:'v_puji_bangga', v_malam_doa:'' };
 const jbClip = id => JB_TUNGGU.has(id) ? JB_GANTI[id] : id;
 

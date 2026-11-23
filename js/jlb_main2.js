@@ -13,8 +13,8 @@ function g2Load(names) {
     const i = new Image(); i.decoding = 'async'; i.onload = () => res(i); i.onerror = () => res(null); i.src = M2P(n);
   })))).then(list => { const o = {}; names.forEach((n, k) => { o[n.split('/').pop().replace(/\.webp$/, '')] = list[k]; }); return o; });
 }
-/* clips waiting for the ustadz (Lembar Periksa bagian 15): a neutral clip is used meanwhile */
-const G2TUNGGU = { v_game_rumah:'v_pendek_horee' };
+/* clips waiting for the ustadz (Lembar Periksa bagian 15) get a neutral clip here; v_game_rumah was approved on 23 Nov 2026 */
+const G2TUNGGU = {};
 const g2v = (id, then) => jvoice(G2TUNGGU[id] || id, then);
 
 /* short sound effects made in code (tones, not music) */
