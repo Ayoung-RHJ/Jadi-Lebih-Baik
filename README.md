@@ -147,7 +147,7 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
   × = hides him (peeks from the bottom; tap to call back). Walks in once per visit; yawns when idle.
 - **Name**: first greeting of the day, first mission or kisah done today, and back after 2+ days: Jimon's clip, then the name in the phone voice (`speechSynthesis`, id-ID).
   Parents can turn it off (Ruang Orang Tua → Jimon, `ortu.nama`). The bubble always writes the name.
-- **[ustadz] clips** `v_sapa_pagi`, `v_puji_masya`, `v_malam_doa` wait for Lembar Periksa bagian 15 (`JB_TUNGGU` in `jlb_buddy.js`; neutral clips are used meanwhile). Empty the set after approval.
+- **[ustadz] clips** `v_sapa_pagi`, `v_puji_masya`, `v_malam_doa` were approved by the ustadz on 23 Nov 2026 (Lembar Periksa bagian 15); `JB_TUNGGU` in `jlb_buddy.js` is empty.
 - **Mission companion**: tapping Sikat gigi (2 min), Rapikan (1 min) or Minum (6 glasses) opens Jimon's timer; the mission ticks itself at the end. "Aku sudah selesai" still ticks at once.
 - **Eye rest**: after 20 minutes of kid-mode screen time (a 5-minute break resets it): stretch + look far for 20 seconds. Count in `_jb:<id>` (this phone only).
 - **Perasaanku hari ini** (Beranda): `jlb:rasa` {date:{m, at}} (synced, merged per day); Ruang Orang Tua shows the last 14 days.
@@ -164,5 +164,5 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
 - Unlocks (`JGAMES` in `jlb_teman.js`): bola, tiru, cari from Level 1; suara 2; adab 3; pulang 4; hujan 5; menara 6; kejar 7; masak 8. All share the 3 plays a day, no XP.
 - No minus points, no "dying", no music: short tones made in code (`sfx`) and Jimon's clips `v_game_*`. Game time stops while the app is in the background.
 - Personal best per game in `jlb:jimon.rek` (synced); a new best plays `v_puji_rekor`.
-- `v_game_rumah` ("Alhamdulillah, sampai rumah!") waits for Lembar Periksa bagian 15 (`G2TUNGGU`); `v_pendek_horee` is used meanwhile.
+- `v_game_rumah` ("Alhamdulillah, sampai rumah!") was approved by the ustadz on 23 Nov 2026 (Lembar Periksa bagian 15); `G2TUNGGU` is empty.
 - Masak Sup ends with the approved line o5 as text: "Jangan lupa bismillah dan pakai tangan kanan ya!".
