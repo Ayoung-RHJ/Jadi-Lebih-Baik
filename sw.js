@@ -7,14 +7,15 @@
    Pictures are fetched with cache:'no-cache' when they go into IMG, so the browser checks Netlify
    instead of reusing its own 30-day copy (v4: the old scarf and headband stayed after v3).
    jlb12 adds new pictures and sounds under new names only (img/jlb/kisah, Jimon pose/barang/stiker/suara t_*), so IMG stays v4
-   and phones do not download every old picture again. Kisah pictures are cached when a story is first opened. */
-const VER = 'jlb12b';
+   and phones do not download every old picture again. Kisah pictures are cached when a story is first opened.
+   jlb13 (Jimon Teman Setia) also adds only new names (jimon/rig, new pose/barang, suara v_*), so IMG stays v4. */
+const VER = 'jlb13';
 const SHELL = 'jlb-shell-' + VER, RUN = 'jlb-run-' + VER, IMG = 'jlb-img-v4';
 const PRE = ['./', 'index.html', 'manifest.webmanifest',
-  'css/app.css?v=jlb12b', 'css/jlb.css?v=jlb12b',
-  'js/core.js?v=jlb12b', 'js/sync.js?v=jlb12b', 'js/figures.js?v=jlb12b', 'js/data.js?v=jlb12b', 'js/engine.js?v=jlb12b',
-  'js/calendar.js?v=jlb12b', 'js/dalil_data.js?v=jlb12b', 'js/journal.js?v=jlb12b', 'js/ui.js?v=jlb12b', 'js/player.js?v=jlb12b',
-  'js/handwrap.js?v=jlb12b', 'js/workouts.js?v=jlb12b', 'js/jlb_core.js?v=jlb12b', 'js/jlb_gerak.js?v=jlb12b', 'js/boot.js?v=jlb12b',
+  'css/app.css?v=jlb13', 'css/jlb.css?v=jlb13',
+  'js/core.js?v=jlb13', 'js/sync.js?v=jlb13', 'js/figures.js?v=jlb13', 'js/data.js?v=jlb13', 'js/engine.js?v=jlb13',
+  'js/calendar.js?v=jlb13', 'js/dalil_data.js?v=jlb13', 'js/journal.js?v=jlb13', 'js/ui.js?v=jlb13', 'js/player.js?v=jlb13',
+  'js/handwrap.js?v=jlb13', 'js/workouts.js?v=jlb13', 'js/jlb_core.js?v=jlb13', 'js/jlb_gerak.js?v=jlb13', 'js/boot.js?v=jlb13',
   'img/jlb/brand/emblem-96.webp'];
 
 self.addEventListener('install', e => {

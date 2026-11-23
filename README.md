@@ -29,6 +29,7 @@ Keep it on the same Netlify site address so everyone's saved data (browser stora
 - `js/jlb_soal.js`: the 250 new approved questions (QB2), 5 questions per step (STEPQ), spare questions (CADQ) and the 10 old Kisah Pilihan stories (no longer shown since jlb12; their XP is kept), generated from the approved Lembar Periksa (loaded on demand)
 - `js/jlb_kisahdata.js`: the 10 Kisah Akhlak stories (8 pages, choices, Pesan, 10 questions, renungan), copied from the approved Naskah Kisah Akhlak (Lembar Periksa bagian 13)
 - `js/jlb_kisah.js`: Kisah Akhlak screens (#belajar/ka): shelf and Buku Kisahku, pages with Bacakan, choices, Pesan, 8 question types, result and renungan (loaded on demand)
+- `js/jlb_buddy.js`: Jimon Teman Setia (jlb13, kid mode only): floating Jimon, greetings with the child's name, mission companion, eye rest, Perasaanku, night routine, gifts, room decorating, question of the day (loaded on demand by the hook at the end of `jlb_core.js`)
 - `js/jlb_teman.js`: Jimon lebih hidup: moods, new room, feeding, Main bersama (#main, 5 games), Surat Jumat and weekly stickers (#surat) (loaded on demand)
 - `js/jlb_rekap.js`: Rekap, Hijriah and Ramadan, Keluarga (loaded on demand)
 - `js/jlb_ayat.json`: Arabic and Kemenag translation for the ayat and hadith in JLB (from quran-json / quranenc and hadith-api). Never type Arabic by hand.
@@ -135,4 +136,22 @@ All punch, defence, exercise and warm-up pictures are in. The rear hook photos w
   `play` (Main bersama, 3 times a day, no XP), `kisah`, `stk` (weekly sticker per week). Levels unlock games: 1 bola, 2 tiru, 3 cari, 4 suara, 5 adab.
 - **Surat Jumat** (`#surat`): built from last week's records (Saturday to Friday); shown on Beranda on Friday, and on Saturday and Sunday while the sticker is unclaimed.
   Share makes a PNG and opens the phone's share menu (WhatsApp).
-- **Tadabbur Alam**: only a "Segera hadir" card on the adult Taman until the material is checked (jlb13).
+- **Tadabbur Alam**: only a "Segera hadir" card on the adult Taman until the material is checked (now planned for jlb14).
+
+## jlb13 (Jimon Teman Setia)
+- **Rig**: every default-face Jimon (`jimonHTML` with face `senang`) uses `img/jlb/jimon/rig/r_*.webp` (720×780, same canvas as `e_senang`, so accessories line up).
+  `jlb_core.js` swaps frames: random blink, tail left/right, ear twitch; mouth `r_m1`/`r_m2` while a clip plays or the phone says the name (`JTALK`).
+- **Voice**: `jvoice` keeps each clip loaded (`JACACHE`), `jpreload(ids)`, `jbuzz(ms)` = short vibration (Android only).
+- **Floating Jimon** on Misi, Belajar, Peti, Perjalanan and Rekap (Beranda and Kamar use their big Jimon). Tap = line, swipe = pet, long press = purr,
+  × = hides him (peeks from the bottom; tap to call back). Walks in once per visit; yawns when idle.
+- **Name**: first greeting of the day, first mission or kisah done today, and back after 2+ days: Jimon's clip, then the name in the phone voice (`speechSynthesis`, id-ID).
+  Parents can turn it off (Ruang Orang Tua → Jimon, `ortu.nama`). The bubble always writes the name.
+- **[ustadz] clips** `v_sapa_pagi`, `v_puji_masya`, `v_malam_doa` wait for Lembar Periksa bagian 15 (`JB_TUNGGU` in `jlb_buddy.js`; neutral clips are used meanwhile). Empty the set after approval.
+- **Mission companion**: tapping Sikat gigi (2 min), Rapikan (1 min) or Minum (6 glasses) opens Jimon's timer; the mission ticks itself at the end. "Aku sudah selesai" still ticks at once.
+- **Eye rest**: after 20 minutes of kid-mode screen time (a 5-minute break resets it): stretch + look far for 20 seconds. Count in `_jb:<id>` (this phone only).
+- **Perasaanku hari ini** (Beranda): `jlb:rasa` {date:{m, at}} (synced, merged per day); Ruang Orang Tua shows the last 14 days.
+- **Night**: after Isya the room dims; "Ajak Jimon tidur" = piyama → doa text (approved: Bismika Allahumma amutu wa ahya., not spoken) → sleep (`jimon.tidur`, `jimon.piyama`).
+  The first greeting next morning wakes him (`v_malam_pagi`, `v_malam_bangun` before 6).
+- **Gifts**: toys for Jimon open at 10/25/45/70 missions (`jimon.gift.toys`); Jimon gives one furniture piece per week with 7+ missions (`jimon.gift.furn`).
+  Everything owned appears in the room; "Tata kamar" drags them (`jimon.room` {item:{x, y, on}} in % of the room).
+- **Question of the day** in Ngobrol (makanan, warna, cita-cita, hewan, teman, pelajaran; at night "apa yang membuatmu senang" is not kept). Answers in `_ingat:<id>`, this phone only, used in Jimon's lines.
